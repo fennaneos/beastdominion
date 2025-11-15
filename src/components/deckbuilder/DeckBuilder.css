@@ -1,0 +1,567 @@
+/* ====================================================================== */
+/*  Deck Builder / Collection layout                                      */
+/* ====================================================================== */
+
+.deckbuilder-root {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Main grid: left = collection, right = sidebar (deck). */
+.deckbuilder-main {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 1.1fr);
+  gap: 10px;
+  height: calc(100vh - 190px);
+  position: relative;
+}
+
+/* When in "collection" mode we hide the sidebar and let the collection
+   take the full width. */
+.deckbuilder-main--collection {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Panels share the same wooden / dark fantasy background. */
+
+.deckbuilder-collection,
+.deckbuilder-sidebar {
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, #3b251d 0, #241318 35%, #140a0f 100%),
+    url("https://upload.wikimedia.org/wikipedia/commons/5/5f/Wood_texture.png");
+  background-blend-mode: overlay;
+  background-size: cover;
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.9);
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sidebar gets a slightly stronger shadow to feel more solid. */
+.deckbuilder-sidebar {
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.95);
+}
+
+/* ====================================================================== */
+/*  Header / filters                                                       */
+/* ====================================================================== */
+
+.deckbuilder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.deckbuilder-title h2 {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  letter-spacing: 0.1em;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+
+.deckbuilder-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Filters line (search + 3 dropdowns). */
+.deckbuilder-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Base styling used for input + select. */
+.db-input {
+  background: radial-gradient(circle at top, #403141 0, #231521 60%);
+  color: var(--text-main);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.db-input--search {
+  width: 180px;
+}
+
+.db-input::placeholder {
+  color: #a18c99;
+}
+
+/* ------------------------ Custom select skin --------------------------- */
+/* We keep the native dropdown behavior but remove OS chrome and add our
+   own little arrow chevron next to each select. */
+
+.db-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Remove default arrow on most browsers so the closed state looks medieval. */
+.db-input--select {
+  padding-right: 22px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* The golden arrow glyph on the right of each select. */
+.db-select-arrow {
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
+  font-size: 0.6rem;
+  color: #f7e0a0;
+}
+
+/* ====================================================================== */
+/*  Collection card grid                                                  */
+/* ====================================================================== */
+
+.deckbuilder-cardgrid {
+  margin-top: 6px;
+  padding-right: 4px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+  justify-items: center;
+}
+
+/* ====================================================================== */
+/*  Sidebar (current deck)                                                */
+/* ====================================================================== */
+
+.deckbuilder-sidebar-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 6px;
+}
+
+.deckbuilder-sidebar-header h3 {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.deckbuilder-sidebar-caption {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Counter pill: 0/6, 3/6, etc. */
+.deckbuilder-deckcount {
+  font-size: 0.85rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 0 0, #f7da8f 0, #d89334 55%);
+  color: #3b1b07;
+  font-weight: 700;
+}
+
+.deckbuilder-root--full {
+  box-shadow: 0 0 40px rgba(80, 180, 255, 0.7);
+  border-radius: 32px;
+}
+
+.deckbuilder-deckcount--full {
+  box-shadow: 0 0 20px rgba(102, 204, 255, 0.9);
+  border-color: #9be4ff;
+}
+
+/* Scrollable area with the deck rows. */
+.deckbuilder-sidebar-body {
+  flex: 1;
+  margin-top: 6px;
+  padding-right: 2px;
+  overflow-y: auto;
+}
+
+.deckbuilder-empty {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+/* A single line in the deck list. */
+.deckbuilder-deckrow {
+  width: 100%;
+  padding: 4px 4px 4px 6px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(90deg, #342026, #221219);
+  color: var(--text-main);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 2px 6px;
+  align-items: center;
+}
+
+/* Button that shows most of the row information. */
+.deckbuilder-deckrow-main {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 0 6px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.deckbuilder-deckrow-count {
+  grid-row: span 2;
+  font-weight: 700;
+  text-align: center;
+}
+
+.deckbuilder-deckrow-name {
+  font-family: "Cinzel", serif;
+}
+
+.deckbuilder-deckrow-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Rarity color chips. */
+.deckbuilder-deckrow-rarity {
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  justify-self: flex-end;
+}
+.deckbuilder-deckrow-rarity--common {
+  color: #d5c5b1;
+}
+.deckbuilder-deckrow-rarity--rare {
+  color: #6bd2ff;
+}
+.deckbuilder-deckrow-rarity--epic {
+  color: #d4a8ff;
+}
+.deckbuilder-deckrow-rarity--legendary {
+  color: #ffe590;
+}
+
+/* Red "X" delete button at end of row. */
+.deckbuilder-deckrow-remove {
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle at 30% 20%,
+    #ffcfb3 0,
+    #d56254 50%,
+    #6b1c1c 100%
+  );
+  color: #2b0505;
+  font-size: 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 120, 120, 0.7);
+}
+
+/* Level-up section (cost + + button). */
+.deckbuilder-deckrow-upgrade {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 0.7rem;
+}
+
+.deckbuilder-deckrow-upgrade-cost {
+  color: #f8d88a;
+}
+
+.deckbuilder-deckrow-upgrade-btn {
+  border-radius: 999px;
+  border: none;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  background: radial-gradient(
+    circle at 20% 0,
+    #ffeab0 0,
+    #d39c3e 40%,
+    #5a3115 100%
+  );
+  color: #291106;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(255, 224, 140, 0.7);
+}
+
+.deckbuilder-deckrow-upgrade-btn[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Footer under the deck list (currently only "Clear Deck"). */
+.deckbuilder-sidebar-footer {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ====================================================================== */
+/*  Buttons shared between bottom bar and overlay                         */
+/* ====================================================================== */
+
+.db-button {
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.db-button--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--text-main);
+}
+
+.db-button--outline {
+  background: transparent;
+  border: 1px solid rgba(180, 166, 210, 0.8);
+  color: #e0d7ff;
+}
+
+/* ====================================================================== */
+/*  Bottom bar (Start / Test / Export)                                   */
+/* ====================================================================== */
+
+.deckbuilder-bottombar {
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: radial-gradient(circle at top, #2c1c28 0, #150d13 60%);
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.9);
+}
+
+/* ====================================================================== */
+/*  Responsive tweaks                                                     */
+/* ====================================================================== */
+
+@media (max-width: 900px) {
+  .deckbuilder-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+  }
+
+  .deckbuilder-bottombar {
+    flex-wrap: wrap;
+  }
+}
+
+/* ====================================================================== */
+/*  Power Unlocked full-screen overlay                                   */
+/* ====================================================================== */
+
+.db-unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90; /* above deck + inspect */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.82), #000);
+}
+
+/* Inner golden panel that pops out in 3D. */
+.db-unlock-inner {
+  position: relative;
+  background: radial-gradient(
+    circle at top,
+    #3b2614 0,
+    #120904 55%,
+    #070302 100%
+  );
+  border-radius: 24px;
+  border: 2px solid #f6d99a;
+  padding: 22px 28px 20px;
+  box-shadow:
+    0 0 50px rgba(0, 0, 0, 1),
+    0 0 60px rgba(246, 217, 154, 0.7);
+  text-align: center;
+  color: #f4e8cf;
+  min-width: min(420px, 90vw);
+  max-width: 500px;
+
+  /* 3D “pop” animation */
+  transform-origin: center center;
+  animation: db-unlock-pop 650ms ease-out forwards;
+}
+
+.db-unlock-title {
+  font-family: "Cinzel", serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.db-unlock-text {
+  margin-top: 12px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.db-unlock-close {
+  margin-top: 14px;
+  border-radius: 999px;
+  padding: 6px 20px;
+}
+
+/* Make the card inside feel like it’s floating forward. */
+.db-unlock-inner .bd-card {
+  margin-top: 6px;
+}
+
+.db-unlock-inner .bd-card__inner {
+  transform-origin: center;
+  animation: bd-unlock-card-drift 900ms ease-out 150ms forwards;
+}
+
+/* 3D container pop animation */
+@keyframes db-unlock-pop {
+  0% {
+    transform: scale(0.2) translateY(40px) rotateX(45deg);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1.05) translateY(-6px) rotateX(0deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.98) translateY(0) rotateX(0deg);
+  }
+  100% {
+    transform: scale(1) translateY(0) rotateX(0deg);
+  }
+}
+
+/* Subtle extra motion on the card itself. */
+@keyframes bd-unlock-card-drift {
+  0% {
+    transform: translateY(18px) scale(0.9);
+    filter: brightness(1.3);
+  }
+  40% {
+    transform: translateY(-6px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* When in "collection" mode, hide the right column and use full width */
+.deckbuilder-main--collection {
+  grid-template-columns: 1fr;
+}
+/* Wrapper for custom-styled selects (race/rarity/stars) */
+.db-select-wrap {
+  position: relative;
+}
+
+/* Remove native arrow and keep pill look when focused/open */
+.db-input--select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 22px; /* space for fake arrow */
+}
+
+/* Fake arrow so style doesn't "jump" when clicking the select */
+.db-select-arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+/* Generic modal overlay (for Test Hand, Deck saved, etc.) */
+.db-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95; /* above deck + below maybe future toasts */
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 0, 0, 0.95)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal box */
+.db-modal {
+  min-width: min(360px, 90vw);
+  max-width: 420px;
+  padding: 18px 24px 20px;
+  border-radius: 18px;
+  background: radial-gradient(circle at top, #3a2631 0, #140a11 55%, #070308 100%);
+  border: 1px solid rgba(246, 217, 154, 0.8);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.95),
+    0 0 24px rgba(246, 217, 154, 0.5);
+  color: #f3e9da;
+  text-align: left;
+}
+
+.db-modal-title {
+  margin: 0 0 8px 0;
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.db-modal-message {
+  margin: 0 0 10px 0;
+  font-size: 0.85rem;
+}
+
+.db-modal-list {
+  margin: 0 0 10px 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+.db-modal-close {
+  margin-top: 4px;
+  align-self: flex-end;
+}
