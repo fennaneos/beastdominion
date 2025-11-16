@@ -107,67 +107,41 @@ function getEffectiveLevel(baseCard, upgradeSteps) {
  * - Art chosen per level (background + no-bg overlay).
  * - Ability text hidden if not yet unlocked.
  */
+// Replace your current getDisplayCard with this:
+
 function getDisplayCard(baseCard, upgradesMap) {
-  // Number of +levels that we purchased for this card id.
   const upgradeSteps = upgradesMap[baseCard.id] || 0;
 
-  // Compute effective level from helper.
   const level = getEffectiveLevel(baseCard, upgradeSteps);
-
   const maxLevel = baseCard.maxLevel ?? 5;
   const baseLevel = baseCard.level ?? baseCard.stars ?? 1;
 
-  /* ----- Stats scaling (Attack / Health) -------------------------------- */
-
-  // Base stats can come from "baseAttack"/"baseHealth" or simple "attack"/"health".
   const atkBase = baseCard.baseAttack ?? baseCard.attack;
   const hpBase = baseCard.baseHealth ?? baseCard.health;
-
-  // Per-level gains (default +1 / +1 if not specified).
   const atkPer = baseCard.attackPerLevel ?? 1;
   const hpPer = baseCard.healthPerLevel ?? 1;
-
-  // Difference between current level and the base level determines scaling.
   const delta = level - baseLevel;
 
   const attack = atkBase + delta * atkPer;
   const health = hpBase + delta * hpPer;
 
-  /* ----- Background art by level ---------------------------------------- */
-
+  // ----- art by level -----
   let image = baseCard.image;
-
-  // If the card provides an array of backgrounds for each level,
-  // pick the appropriate one (fall back to first if out of range).
   if (Array.isArray(baseCard.imagesByLevel) && baseCard.imagesByLevel.length) {
     const idx = Math.min(level, baseCard.imagesByLevel.length) - 1;
     image = baseCard.imagesByLevel[idx] || baseCard.imagesByLevel[0];
   }
 
-  /* ----- Foreground (no-bg) art by level -------------------------------- */
-
   let imageTop = null;
-
-  // Similar logic but for the transparent overlay image that can stick
-  // out of the top of the frame.
-  if (
-    Array.isArray(baseCard.topImagesByLevel) &&
-    baseCard.topImagesByLevel.length
-  ) {
+  if (Array.isArray(baseCard.topImagesByLevel) && baseCard.topImagesByLevel.length) {
     const idx = Math.min(level, baseCard.topImagesByLevel.length) - 1;
     imageTop = baseCard.topImagesByLevel[idx] || null;
   }
 
-  /* ----- Ability unlocked or locked? ------------------------------------ */
-
-  // Some cards unlock their power at a given level (e.g. Whelp at Lv3).
   const unlockLevel = baseCard.unlockLevel ?? 1;
   const abilityUnlocked = level >= unlockLevel;
-
   const text = abilityUnlocked ? baseCard.text : "";
 
-  // We keep track of "level" and also map it onto "stars" so the top
-  // golden dots visually follow the evolution.
   return {
     ...baseCard,
     level,

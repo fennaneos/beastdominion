@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <title>Beast Dominion - Deck Builder</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Fonts with fallback to system fonts if unavailable -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet" onerror="console.warn('Google Fonts failed to load, using system fonts')">
+    <style>
+      /* Fallback fonts if Google Fonts fail */
+      body {
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+      }
+      .campaign-root, .bd-card, button {
+        font-family: 'Cinzel', 'Arial', sans-serif;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
