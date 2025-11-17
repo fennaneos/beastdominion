@@ -57,9 +57,11 @@ export default function Battlefield3D({
   isPlayerTurn,
 
   // Tutorial control from parent
-  enableTutorial = true,
+  enableTutorial,
   onTutorialFinished,
   onChangeTutorialEnabled,
+      levelInfo,        // 👈 we read levelInfo from props
+
 }) {
   // ------------------------------------------------------------------------
   // CAMERA STATE (purely visual; does not affect rules)
@@ -80,9 +82,22 @@ export default function Battlefield3D({
   // ------------------------------------------------------------------------
   // TUTORIAL ENGINE STATE
   // ------------------------------------------------------------------------
+  // Tutorial only runs on tutorial level (level 0)
+enableTutorial =
+    levelInfo?.chapterId === "darkwood" &&
+    (levelInfo?.levelId === 0 || levelInfo?.level?.id === 0);
   const [tutorialEnabled, setTutorialEnabled] = useState(enableTutorial);
   const [isTutorialActive, setIsTutorialActive] = useState(enableTutorial);
   const [tutorialStep, setTutorialStep] = useState(enableTutorial ? 0 : -1);
+
+  
+    // If you want tutorial state to reset when level changes:
+  useEffect(() => {
+    setTutorialEnabled(
+      levelInfo?.chapterId === "darkwood" &&
+      (levelInfo?.levelId === 0 || levelInfo?.level?.id === 0)
+    );
+  }, [levelInfo?.chapterId, levelInfo?.levelId, levelInfo?.level?.id]);
 
   /**
    * tutorialExpectedClick:

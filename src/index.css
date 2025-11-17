@@ -615,3 +615,7 @@ button {
   max-width: 350px;
   padding: 20px;
 }
+
+        .deck-preview-tooltip {
+          z-index: 1001;
+        }

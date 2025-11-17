@@ -1,0 +1,165 @@
+/* src/components/battle/BattleResultPanel.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=MedievalSharp&display=swap');
+
+.battle-result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  font-family: 'Cinzel', serif;
+}
+
+.battle-result-panel {
+  background: linear-gradient(145deg, #3a2a1a, #1f1611);
+  border: 8px solid #8B4513;
+  border-radius: 15px;
+  padding: 40px;
+  color: #f4e4c1;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(0,0,0,0.7);
+  max-width: 500px;
+  width: 90%;
+  animation: fadeInScale 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.battle-result-header h1 {
+  font-size: 3.5em;
+  margin: 0;
+  text-shadow: 2px 2px 5px #000;
+  color: #FFD700; /* Gold for victory */
+}
+
+.battle-result-header h1.defeat {
+  color: #C0C0C0; /* Silver for defeat */
+}
+
+.battle-result-text {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1.2em;
+  margin: 20px 0;
+}
+
+.battle-reward-section {
+  margin-top: 20px;
+}
+
+.battle-reward-section h2 {
+  font-size: 1.8em;
+  color: #d4af37;
+  margin-bottom: 15px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 0 0 10px #FFD700;
+}
+
+.reward-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.coin-shower {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  pointer-events: none;
+}
+
+.coin {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #FFD700, #B8860B);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.coin.fly {
+  animation: flyAway 1.5s ease-out forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes flyAway {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + (random(-150px, 150px))),
+      calc(-50% + (random(-200px, -100px)))
+    ) scale(0.5);
+  }
+}
+
+/* Helper for random values in animation */
+/* Note: For full browser support, you'd pre-generate these keyframes in JS */
+@keyframes flyAway1 { to { transform: translate(-200px, -250px) scale(0.5); opacity: 0; } }
+@keyframes flyAway2 { to { transform: translate(150px, -300px) scale(0.5); opacity: 0; } }
+@keyframes flyAway3 { to { transform: translate(-50px, -280px) scale(0.5); opacity: 0; } }
+@keyframes flyAway4 { to { transform: translate(0px, -320px) scale(0.5); opacity: 0; } }
+@keyframes flyAway5 { to { transform: translate(100px, -250px) scale(0.5); opacity: 0; } }
+
+/* Apply random animations to coins */
+.coin:nth-child(5n+1) { animation-name: flyAway1; }
+.coin:nth-child(5n+2) { animation-name: flyAway2; }
+.coin:nth-child(5n+3) { animation-name: flyAway3; }
+.coin:nth-child(5n+4) { animation-name: flyAway4; }
+.coin:nth-child(5n+5) { animation-name: flyAway5; }
+
+
+.battle-result-actions {
+  margin-top: 30px;
+}
+
+.battle-result-btn {
+  font-family: 'Cinzel', serif;
+  background-color: #5a3e2b;
+  color: #f4e4c1;
+  border: 2px solid #8B4513;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.battle-result-btn:hover {
+  background-color: #8B4513;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}

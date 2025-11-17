@@ -18,33 +18,32 @@
  *
  * 3. Receives click events back from <Battlefield3D />
  *    - onCardClick({ unitId, owner: "player"|"enemy", zone: "hand"|"field" })
- *    - Here we decide *what that means* in terms of game rules.
  *
- * 4. Handles a *very simple* battle loop:
- *    - When player clicks a card in HAND and there is an empty front slot,
- *      the card is summoned to the first empty slot.
- *      (This is what the tutorial needs for steps 2–4.)
- *    - When battlePhase === "selectAttacker":
- *        click your field card → chosen as attacker.
- *    - When battlePhase === "selectTarget":
- *        click enemy field card → resolve one exchange of damage.
+ * 4. Handles a simple battle loop:
+ *    - Click hand card → summon to first empty slot.
+ *    - Click your field card → choose attacker.
+ *    - Click enemy field card → resolve one attack exchange.
  *
- * NOTE
- * ----
- * All game rules here are deliberately simple and easy to replace.
- * You can swap out card data, phases, and damage logic with your real system,
- * as long as you keep the *prop shapes* passed to <Battlefield3D />.
+ * 5. Detects when the battle is over:
+ *    - Enemy has no creatures left → Victory.
+ *    - Player has no hand AND no field creatures → Defeat.
+ *    - Shows medieval Victory/Defeat panel and can notify parent via
+ *      onBattleComplete(result, levelInfo).
  * ============================================================================
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Battlefield3D from "./Battlefield3D.jsx";
+import TutorialOverlay from "./TutorialOverlay.jsx"; // currently managed in Battlefield3D
+import "./BattleScreen.css";
+import "./TutorialOverlay.css";
 
-// ---------------------------------------------------------------------------
-// 1. Helper: create a unit/card object
-//    (You can delete this and plug in your own card data instead.)
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------------- */
+/* 1. Helper: create a unit/card object                                      */
+/* ------------------------------------------------------------------------- */
+
 let nextId = 1;
+
 function createUnit(partial) {
   return {
     id: partial.id ?? `u_${nextId++}`,
@@ -59,15 +58,39 @@ function createUnit(partial) {
     text: partial.text ?? "",
     image: partial.image ?? null,
     imageTop: partial.imageTop ?? null,
-    // anything extra can stay in partial
+    owner: partial.owner ?? "player",
     ...partial,
   };
 }
 
-// ---------------------------------------------------------------------------
-// 2. Initial debug setup
-//    Replace this section with however you actually build a battle.
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------------- */
+/* 2. Helper: evolve a deck card for battle based on upgrades                */
+/* ------------------------------------------------------------------------- */
+
+function evolveCardForBattle(card, upgradesMap = {}) {
+  const steps = upgradesMap[card.id] || 0;
+  const baseLevel = card.level ?? card.stars ?? 1;
+  const maxLevel = card.maxLevel ?? 5;
+  const level = Math.min(baseLevel + steps, maxLevel);
+
+  const atkBase = card.baseAttack ?? card.attack ?? 1;
+  const hpBase = card.baseHealth ?? card.health ?? 1;
+  const atkPer = card.attackPerLevel ?? 1;
+  const hpPer = card.healthPerLevel ?? 1;
+  const delta = level - baseLevel;
+
+  return {
+    ...card,
+    level,
+    attack: atkBase + delta * atkPer,
+    health: hpBase + delta * hpPer,
+  };
+}
+
+/* ------------------------------------------------------------------------- */
+/* 3. Initial demo setup (used for tutorial / fallback)                      */
+/* ------------------------------------------------------------------------- */
+
 const INITIAL_PLAYER_HAND = [
   createUnit({
     name: "Chainborn Whelp",
@@ -104,34 +127,100 @@ const INITIAL_PLAYER_HAND = [
   }),
 ];
 
+// Two enemy cards for tutorial/demo
 const INITIAL_ENEMY_FIELD = [
   createUnit({
-    name: "Dunecrest King",
-    race: "dragon",
-    attack: 5,
-    health: 5,
-    maxHealth: 5,
+    name: "Redridge Hound",
+    race: "dog",
+    attack: 4,
+    health: 2,
+    maxHealth: 4,
+    rarity: "epic",
+  }),
+  createUnit({
+    name: "Redridge Hound",
+    race: "dog",
+    attack: 4,
+    health: 2,
+    maxHealth: 4,
     rarity: "epic",
   }),
   null,
-  null,
 ];
 
-// ---------------------------------------------------------------------------
-// 3. BattleScreen component
-// ---------------------------------------------------------------------------
-export default function BattleScreen() {
-  // ---- Core board state ----------------------------------------------------
-  const [playerHand, setPlayerHand] = useState(INITIAL_PLAYER_HAND);
-  const [playerField, setPlayerField] = useState([null, null, null]);
-  const [enemyField, setEnemyField] = useState(INITIAL_ENEMY_FIELD);
+/* ------------------------------------------------------------------------- */
+/* 4. BattleScreen component                                                 */
+/* ------------------------------------------------------------------------- */
+
+export default function BattleScreen({
+  playerDeck = [],
+  upgrades = {},
+  levelInfo,
+  onExitBattle,
+  onBattleComplete,
+}) {
+  // Tutorial = only Darkwood chapter level 0
+  const isTutorial =
+    levelInfo?.chapterId === "darkwood" &&
+    (levelInfo?.levelId === 0 || levelInfo?.level?.id === 0);
+
+  /**
+   * Build initial units for the player based on the real deck and upgrades.
+   */
+  const buildUnitsFromDeck = () => {
+    const deckToUse = isTutorial && playerDeck.length === 0 ? null : playerDeck;
+
+    if (!deckToUse || deckToUse.length === 0) {
+      return {
+        hand: INITIAL_PLAYER_HAND,
+        field: [null, null, null],
+      };
+    }
+
+    const toUnit = (card) => {
+      const evolved = evolveCardForBattle(card, upgrades);
+      return createUnit({
+        name: evolved.name,
+        cost: evolved.cost,
+        attack: evolved.attack,
+        health: evolved.health,
+        maxHealth: evolved.health,
+        race: evolved.race,
+        rarity: evolved.rarity,
+        stars: evolved.stars,
+        text: evolved.text,
+        image: evolved.image,
+        imageTop: evolved.imageTop,
+        owner: "player",
+        sourceCardId: evolved.id,
+        level: evolved.level,
+      });
+    };
+
+    const deckUnits = deckToUse.map(toUnit);
+    const handSize = Math.min(3, deckUnits.length);
+    const hand = deckUnits.slice(0, handSize);
+
+    return {
+      hand,
+      field: [null, null, null],
+    };
+  };
+
+  /* ----- Core board state ------------------------------------------------ */
+
+  const [playerHand, setPlayerHand] = useState(() => buildUnitsFromDeck().hand);
+  const [playerField, setPlayerField] = useState(
+    () => buildUnitsFromDeck().field
+  );
+
+  const [enemyField, setEnemyField] = useState(() => INITIAL_ENEMY_FIELD);
   const [playerGraveyard, setPlayerGraveyard] = useState([]);
   const [enemyGraveyard, setEnemyGraveyard] = useState([]);
 
-  // ---- Battle flow + animation state --------------------------------------
-  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+  /* ----- Battle flow + animation state ---------------------------------- */
 
-  // phases: "summonOrAttack", "selectTarget", "resolving", "enemyTurn"
+  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [battlePhase, setBattlePhase] = useState("summonOrAttack");
 
   const [selectedAttackerId, setSelectedAttackerId] = useState(null);
@@ -142,17 +231,30 @@ export default function BattleScreen() {
   const [attackAnimations, setAttackAnimations] = useState([]);
   const [damageEffects, setDamageEffects] = useState([]);
 
-  // Simple text log on the right panel
   const [logLines, setLogLines] = useState([]);
 
-  // Helper to push to log
+  const [battleResult, setBattleResult] = useState(null);
+  const [hasReportedResult, setHasReportedResult] = useState(false);
+
   const pushLog = (text) => {
     setLogLines((prev) => [...prev, text]);
   };
 
-  // -------------------------------------------------------------------------
-  // 4. Game helpers: look up units by id
-  // -------------------------------------------------------------------------
+  // Rebuild units if deck/upgrades change
+  useEffect(() => {
+    const { hand, field } = buildUnitsFromDeck();
+    setPlayerHand(hand);
+    setPlayerField(field);
+    setPlayerGraveyard([]);
+    setSelectedAttackerId(null);
+    setBattlePhase("summonOrAttack");
+    pushLog("A new deck has been loaded for this battle.");
+  }, [playerDeck, upgrades]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ----------------------------------------------------------------------- */
+  /* Helpers: find unit, summon, resolve attack, death animations            */
+  /* ----------------------------------------------------------------------- */
+
   const findUnitOnField = (owner, unitId) => {
     if (owner === "player") {
       const index = playerField.findIndex((u) => u && u.id === unitId);
@@ -163,20 +265,16 @@ export default function BattleScreen() {
     }
   };
 
-  // -------------------------------------------------------------------------
-  // 5. Summon: move card from hand → first empty player field slot
-  // -------------------------------------------------------------------------
   const summonFromHandToField = (unitId) => {
     setPlayerHand((prevHand) => {
       const idxInHand = prevHand.findIndex((u) => u && u.id === unitId);
-      if (idxInHand === -1) return prevHand; // nothing to do
+      if (idxInHand === -1) return prevHand;
 
       const card = prevHand[idxInHand];
 
       setPlayerField((prevField) => {
         const slotIndex = prevField.findIndex((slot) => slot == null);
         if (slotIndex === -1) {
-          // no room; leave hand unchanged
           pushLog("No empty frontline slot to summon onto.");
           return prevField;
         }
@@ -187,16 +285,12 @@ export default function BattleScreen() {
         return newField;
       });
 
-      // remove card from hand
       const newHand = [...prevHand];
       newHand.splice(idxInHand, 1);
       return newHand;
     });
   };
 
-  // -------------------------------------------------------------------------
-  // 6. Attack resolution: very simple exchange of damage
-  // -------------------------------------------------------------------------
   const resolveAttack = (attackerInfo, defenderInfo) => {
     const { unit: attacker, owner: attackerOwner, index: attackerIndex } =
       attackerInfo;
@@ -210,7 +304,6 @@ export default function BattleScreen() {
       `You: ${attacker.name} hit ${defender.name} for ${damageToDefender} (and took ${damageToAttacker} in return).`
     );
 
-    // Trigger a simple attack animation in 3D
     setAttackAnimations([
       {
         id: `atk_${Date.now()}`,
@@ -221,7 +314,6 @@ export default function BattleScreen() {
       },
     ]);
 
-    // Trigger damage number effects for both cards
     setDamageEffects([
       {
         id: `dmg_def_${Date.now()}`,
@@ -237,14 +329,11 @@ export default function BattleScreen() {
       },
     ]);
 
-    // Mark attacker as currently attacking for wiggle anim
     setAttackingUnitId(attacker.id);
 
-    // Apply HP changes
     const attackerNewHp = Math.max((attacker.health ?? 0) - damageToAttacker, 0);
     const defenderNewHp = Math.max((defender.health ?? 0) - damageToDefender, 0);
 
-    // Update both fields immutably
     setPlayerField((prev) => {
       if (attackerOwner !== "player") return prev;
       const next = [...prev];
@@ -259,7 +348,6 @@ export default function BattleScreen() {
       return next;
     });
 
-    // KO logic → graveyard
     const unitsToDie = [];
     if (attackerNewHp <= 0) unitsToDie.push(attacker.id);
     if (defenderNewHp <= 0) unitsToDie.push(defender.id);
@@ -268,7 +356,6 @@ export default function BattleScreen() {
       setDyingUnits((prev) => [...prev, ...unitsToDie]);
     }
 
-    // Move dead units into graveyards & clear board slots
     setPlayerField((prev) => {
       const next = [...prev];
       unitsToDie.forEach((id) => {
@@ -293,7 +380,6 @@ export default function BattleScreen() {
       return next;
     });
 
-    // Reset transient selection / animation state after a short delay
     setTimeout(() => {
       setAttackAnimations([]);
       setDamageEffects([]);
@@ -304,35 +390,25 @@ export default function BattleScreen() {
     }, 700);
   };
 
-  // Called by Battlefield3D when a burning death animation finishes
   const handleDeathComplete = (unitId) => {
     setDyingUnits((prev) => prev.filter((id) => id !== unitId));
   };
 
-  // -------------------------------------------------------------------------
-  // 7. REACTION TO 3D CLICKS
-  // -------------------------------------------------------------------------
+  /* ----------------------------------------------------------------------- */
+  /* Click handler from 3D                                                   */
+  /* ----------------------------------------------------------------------- */
+
   const handle3DCardClick = (info) => {
-    console.log("[BattleScreen] onCardClick from 3D:", info);
+    if (battleResult) return;
     if (!info) return;
 
     const { owner, zone, unitId } = info;
 
-    // -----------------------------------------------------------------------
-    // A. Summon from hand: as long as it's your turn, any hand click will try
-    //    to move the card onto the first empty field slot.
-    //    (This is what the tutorial's steps 2–4 rely on.)
-    // -----------------------------------------------------------------------
     if (owner === "player" && zone === "hand" && isPlayerTurn) {
       summonFromHandToField(unitId);
-      // We do NOT change phase here. The tutorial inside Battlefield3D will
-      // see the field change and advance its internal tutorialStep.
       return;
     }
 
-    // -----------------------------------------------------------------------
-    // B. Player chooses attacker from their field
-    // -----------------------------------------------------------------------
     if (
       owner === "player" &&
       zone === "field" &&
@@ -349,9 +425,6 @@ export default function BattleScreen() {
       return;
     }
 
-    // -----------------------------------------------------------------------
-    // C. Player chooses enemy target
-    // -----------------------------------------------------------------------
     if (
       owner === "enemy" &&
       zone === "field" &&
@@ -368,20 +441,43 @@ export default function BattleScreen() {
       resolveAttack(attackerInfo, defenderInfo);
       return;
     }
-
-    // Anything else (e.g. clicking own field when wrong phase) just logs
-    console.log("[BattleScreen] Click ignored for current phase:", battlePhase);
   };
 
-  // -------------------------------------------------------------------------
-  // 8. Derived stats for the right panel
-  // -------------------------------------------------------------------------
+  /* ----------------------------------------------------------------------- */
+  /* Detect battle end                                                       */
+  /* ----------------------------------------------------------------------- */
+
+  useEffect(() => {
+    if (battleResult) return;
+
+    const playerAlive =
+      playerField.some((slot) => slot != null) || playerHand.length > 0;
+    const enemyAlive = enemyField.some((slot) => slot != null);
+
+    if (!enemyAlive && playerAlive) {
+      setBattleResult("victory");
+    } else if (!playerAlive && enemyAlive) {
+      setBattleResult("defeat");
+    }
+  }, [playerField, playerHand, enemyField, battleResult]);
+
+  useEffect(() => {
+    if (!battleResult || hasReportedResult) return;
+    if (typeof onBattleComplete === "function") {
+      onBattleComplete(battleResult, levelInfo);
+    }
+    setHasReportedResult(true);
+  }, [battleResult, hasReportedResult, onBattleComplete, levelInfo]);
+
+  /* ----------------------------------------------------------------------- */
+  /* Derived stats + reset                                                   */
+  /* ----------------------------------------------------------------------- */
+
   const battleStats = useMemo(() => {
-    const totalDamageDealt = 0; // you can track this for real later
+    const totalDamageDealt = 0;
     const totalDamageTaken = 0;
     const cardsDefeated =
-      playerGraveyard.length + enemyGraveyard.length || 0;
-
+      (playerGraveyard?.length || 0) + (enemyGraveyard?.length || 0);
     return {
       totalDamageDealt,
       totalDamageTaken,
@@ -392,11 +488,32 @@ export default function BattleScreen() {
     };
   }, [playerGraveyard, enemyGraveyard]);
 
-  // -------------------------------------------------------------------------
-  // 9. RENDER
-  // -------------------------------------------------------------------------
+  const handleResetBattle = () => {
+    const { hand, field } = buildUnitsFromDeck();
+    setPlayerHand(hand);
+    setPlayerField(field);
+    setEnemyField(INITIAL_ENEMY_FIELD);
+    setPlayerGraveyard([]);
+    setEnemyGraveyard([]);
+    setBattlePhase("summonOrAttack");
+    setSelectedAttackerId(null);
+    setSelectedTargetId(null);
+    setAttackingUnitId(null);
+    setDyingUnits([]);
+    setAttackAnimations([]);
+    setDamageEffects([]);
+    setLogLines([]);
+    setBattleResult(null);
+    setHasReportedResult(false);
+  };
+
+  /* ----------------------------------------------------------------------- */
+  /* Render                                                                  */
+  /* ----------------------------------------------------------------------- */
+
   return (
     <div
+      className="battle-screen-container"
       style={{
         display: "flex",
         height: "100vh",
@@ -416,6 +533,7 @@ export default function BattleScreen() {
         }}
       >
         <Battlefield3D
+          levelInfo={levelInfo}
           playerField={playerField}
           enemyField={enemyField}
           playerHand={playerHand}
@@ -431,7 +549,6 @@ export default function BattleScreen() {
           damageEffects={damageEffects}
           battlePhase={battlePhase}
           isPlayerTurn={isPlayerTurn}
-          enableTutorial={true} // you can wire this to a setting later
         />
       </div>
 
@@ -446,7 +563,6 @@ export default function BattleScreen() {
           flexDirection: "column",
         }}
       >
-        {/* Top header --------------------------------------------------------*/}
         <div
           style={{
             padding: "8px 12px",
@@ -463,7 +579,6 @@ export default function BattleScreen() {
           Battle prototype – Darkwood
         </div>
 
-        {/* Turn + Phase ------------------------------------------------------*/}
         <div style={{ marginBottom: 12, fontSize: 13 }}>
           <div>Turn: {isPlayerTurn ? "You" : "Enemy"}</div>
           <div>Phase: {battlePhase}</div>
@@ -472,19 +587,16 @@ export default function BattleScreen() {
               "Your turn – click a hand card to summon, or a field card to attack."}
             {battlePhase === "selectTarget" &&
               "Choose an enemy creature to attack."}
-            {battlePhase === "resolving" &&
-              "Resolving the clash..."}
+            {battlePhase === "resolving" && "Resolving the clash..."}
           </div>
         </div>
 
-        {/* Graveyards --------------------------------------------------------*/}
         <div style={{ marginBottom: 12, fontSize: 13 }}>
           <div style={{ fontWeight: "bold", marginBottom: 4 }}>Graveyard</div>
           <div>Yours: {playerGraveyard.length} cards</div>
           <div>Enemy: {enemyGraveyard.length} cards</div>
         </div>
 
-        {/* Simple battle stats -----------------------------------------------*/}
         <div style={{ marginBottom: 12, fontSize: 13 }}>
           <div style={{ fontWeight: "bold", marginBottom: 4 }}>
             Battle Stats
@@ -494,7 +606,6 @@ export default function BattleScreen() {
           <div>Cards Defeated: {battleStats.cardsDefeated}</div>
         </div>
 
-        {/* Log ---------------------------------------------------------------*/}
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div style={{ fontWeight: "bold", marginBottom: 4, fontSize: 13 }}>
             Log
@@ -521,25 +632,9 @@ export default function BattleScreen() {
           </div>
         </div>
 
-        {/* Bottom controls ---------------------------------------------------*/}
         <div style={{ marginTop: 12 }}>
           <button
-            onClick={() => {
-              // quick debug reset
-              setPlayerHand(INITIAL_PLAYER_HAND);
-              setPlayerField([null, null, null]);
-              setEnemyField(INITIAL_ENEMY_FIELD);
-              setPlayerGraveyard([]);
-              setEnemyGraveyard([]);
-              setBattlePhase("summonOrAttack");
-              setSelectedAttackerId(null);
-              setSelectedTargetId(null);
-              setAttackingUnitId(null);
-              setDyingUnits([]);
-              setAttackAnimations([]);
-              setDamageEffects([]);
-              setLogLines([]);
-            }}
+            onClick={handleResetBattle}
             style={{
               width: "100%",
               padding: "8px 12px",
@@ -556,6 +651,32 @@ export default function BattleScreen() {
           </button>
         </div>
       </div>
+
+      {/* VICTORY / DEFEAT OVERLAY ********************************************/}
+      {battleResult && (
+        <div className="battle-result-overlay">
+          <div className="battle-result-panel">
+            <div className="battle-result-header">
+              {battleResult === "victory" ? "Victory" : "Defeat"}
+            </div>
+
+            <p className="battle-result-text">
+              {battleResult === "victory"
+                ? "Your beasts stand triumphant. Bards will sing of this clash in smoky taverns."
+                : "Your forces have fallen. The wilds do not forgive weakness… but they reward those who return stronger."}
+            </p>
+
+            <div className="battle-result-actions">
+              <button
+                className="battle-result-btn battle-result-btn-primary"
+                onClick={onExitBattle}
+              >
+                {battleResult === "victory" ? "Return to Map" : "Retreat to Camp"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

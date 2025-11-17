@@ -2,20 +2,61 @@
 import { useState } from "react";
 import "./CampaignScreen.css";
 
-const CAMPAIGN_CHAPTERS = [
+/**
+ * CampaignScreen
+ *
+ * Props:
+ *  - gold, shards
+ *  - onStartBattle({ chapterId, levelId, chapter, level })
+ *  - progress: {
+ *      [chapterId]: {
+ *        maxUnlockedLevel: number,   // highest unlocked level index (0 = tutorial)
+ *        completedLevels: number[]   // levels actually cleared
+ *      }
+ *    }
+ */
+
+// Helper: Darkwood levels (id 0 is tutorial)
+function generateDarkwoodLevels() {
+  const xs = [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62, 62];
+  const ys = [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88, 30];
+
+  // id 0 = tutorial, then 1..11 regular levels
+  return Array.from({ length: 12 }).map((_, idx) => ({
+    id: idx,
+    label: idx === 0 ? "T" : idx,
+    x: xs[idx] ?? 30,
+    y: ys[idx] ?? 70,
+  }));
+}
+
+// Generic helper for later chapters – all levels 1..11
+function generateStandardLevels() {
+  const xs = [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62];
+  const ys = [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88];
+
+  return Array.from({ length: 11 }).map((_, idx) => ({
+    id: idx + 1,
+    label: idx + 1,
+    x: xs[idx],
+    y: ys[idx],
+  }));
+}
+
+const BASE_CAMPAIGN_CHAPTERS = [
   {
     id: "darkwood",
     index: 1,
     name: "Darkwood",
     difficulty: "Easy",
     description:
-      "The West of the Isles of the Sun, known for its cold rains and deep coniferous forests. " +
-      "Animals, beasts and other marine wildlife live here. For a long time after the Split, uninvited guests had not come.",
+      "The West of the Isles of the Sun, where cold rain gnaws at ancient pines. " +
+      "Wolves, spirits and stranger beasts watch every intruder from the undergrowth.",
     recommendedPower: 71,
     staminaCost: 6,
     rewards: [
       "Complete the mission",
-      "Win battle with no less than 25% of each monster's health",
+      "Win with no less than 25% of each monster's health",
       "Win with 2 monsters in team",
     ],
     enemies: [
@@ -23,20 +64,7 @@ const CAMPAIGN_CHAPTERS = [
       { id: "spirit2", name: "Moonling", power: 24 },
       { id: "boss", name: "Darkwood Warden", power: 23 },
     ],
-    levels: [
-      // x / y are percentages inside the map area (0–100).
-      { id: 1, label: 1, x: 25, y: 88, unlocked: true, current: false },
-      { id: 2, label: 2, x: 42, y: 80, unlocked: true, current: false },
-      { id: 3, label: 3, x: 18, y: 70, unlocked: true, current: false },
-      { id: 4, label: 4, x: 40, y: 60, unlocked: true, current: false },
-      { id: 5, label: 5, x: 20, y: 52, unlocked: true, current: false },
-      { id: 6, label: 6, x: 40, y: 42, unlocked: true, current: false },
-      { id: 7, label: 7, x: 20, y: 32, unlocked: true, current: false },
-      { id: 8, label: 8, x: 40, y: 22, unlocked: true, current: false },
-      { id: 9, label: 9, x: 62, y: 52, unlocked: true, current: false },
-      { id: 10, label: 10, x: 62, y: 70, unlocked: true, current: false },
-      { id: 11, label: 11, x: 62, y: 88, unlocked: true, current: true }, // current node
-    ],
+    levels: generateDarkwoodLevels(),
   },
   {
     id: "embercliffs",
@@ -44,7 +72,7 @@ const CAMPAIGN_CHAPTERS = [
     name: "Ember Cliffs",
     difficulty: "Normal",
     description:
-      "Jagged volcanic ridges and lava rivers. Only the bravest monsters climb these paths.",
+      "Jagged volcanic ridges and rivers of slow, crawling lava. Only the bravest beasts climb these paths.",
     recommendedPower: 150,
     staminaCost: 8,
     rewards: [
@@ -57,14 +85,7 @@ const CAMPAIGN_CHAPTERS = [
       { id: "hound", name: "Magma Hound", power: 55 },
       { id: "lord", name: "Flame Lord", power: 55 },
     ],
-    levels: Array.from({ length: 11 }).map((_, idx) => ({
-      id: idx + 1,
-      label: idx + 1,
-      x: [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62][idx],
-      y: [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88][idx],
-      unlocked: idx === 0,
-      current: idx === 0,
-    })),
+    levels: generateStandardLevels(),
   },
   {
     id: "frozendepths",
@@ -72,76 +93,123 @@ const CAMPAIGN_CHAPTERS = [
     name: "Frozen Depths",
     difficulty: "Hard",
     description:
-      "Beneath the old glaciers, something ancient and hungry stirs.",
+      "Beneath the oldest glaciers, something ancient and hungry stirs. " +
+      "The cold alone can kill a careless summoner.",
     recommendedPower: 260,
     staminaCost: 10,
     rewards: [
       "Complete the mission",
       "Win with only 3 cards in deck",
-      "Win battle without using abilities",
+      "Win without using abilities",
     ],
     enemies: [
       { id: "wisp", name: "Ice Wisp", power: 70 },
       { id: "golem", name: "Frost Golem", power: 90 },
       { id: "tyrant", name: "Glacier Tyrant", power: 100 },
     ],
-    levels: Array.from({ length: 11 }).map((_, idx) => ({
-      id: idx + 1,
-      label: idx + 1,
-      x: [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62][idx],
-      y: [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88][idx],
-      unlocked: idx === 0,
-      current: idx === 0,
-    })),
+    levels: generateStandardLevels(),
   },
 ];
 
-export default function CampaignScreen({ gold, shards, onStartBattle }) {
+export default function CampaignScreen({
+  gold,
+  shards,
+  onStartBattle,
+  progress = {},
+}) {
+  // Which world strip pill is selected
   const [activeChapterId, setActiveChapterId] = useState(
-    CAMPAIGN_CHAPTERS[0].id
+    BASE_CAMPAIGN_CHAPTERS[0].id
   );
+
+  // Which node on the map is selected (per chapter)
   const [selectedLevelId, setSelectedLevelId] = useState(
-    CAMPAIGN_CHAPTERS[0].levels[0].id
+    BASE_CAMPAIGN_CHAPTERS[0].levels[0].id
   );
 
-  const activeChapter =
-    CAMPAIGN_CHAPTERS.find((c) => c.id === activeChapterId) ??
-    CAMPAIGN_CHAPTERS[0];
+  // Utility: merge base config with progression
+  const decorateChapterWithProgress = (chapter) => {
+    const chapterProgress = progress[chapter.id] || {
+      maxUnlockedLevel: chapter.id === "darkwood" ? 0 : 1,
+      completedLevels: [],
+    };
 
+    const decoratedLevels = chapter.levels.map((level) => {
+      const isTutorial =
+        chapter.id === "darkwood" && level.id === 0;
+
+      const unlocked = isTutorial
+        ? true
+        : level.id <= (chapterProgress.maxUnlockedLevel ?? 0);
+
+      const completed =
+        chapterProgress.completedLevels?.includes(level.id) ?? false;
+
+      // "current" node = highest unlocked level in that chapter
+      const isCurrent =
+        unlocked &&
+        level.id === (chapterProgress.maxUnlockedLevel ?? 0);
+
+      return {
+        ...level,
+        unlocked,
+        completed,
+        current: isCurrent,
+      };
+    });
+
+    return {
+      ...chapter,
+      levels: decoratedLevels,
+    };
+  };
+
+  // Active chapter object (with unlocks applied)
+  const rawActive =
+    BASE_CAMPAIGN_CHAPTERS.find((c) => c.id === activeChapterId) ??
+    BASE_CAMPAIGN_CHAPTERS[0];
+  const activeChapter = decorateChapterWithProgress(rawActive);
+
+  // Selected level object, falling back to first unlocked if needed
   const selectedLevel =
-    activeChapter.levels.find((l) => l.id === selectedLevelId) ??
+    activeChapter.levels.find((l) => l.id === selectedLevelId && l.unlocked) ??
+    activeChapter.levels.find((l) => l.unlocked) ??
     activeChapter.levels[0];
 
+  // Handle chapter pill click
   const handleSelectChapter = (chapterId) => {
-    const chapter = CAMPAIGN_CHAPTERS.find((c) => c.id === chapterId);
+    const chapter = BASE_CAMPAIGN_CHAPTERS.find((c) => c.id === chapterId);
     if (!chapter) return;
 
+    const decorated = decorateChapterWithProgress(chapter);
     const firstUnlocked =
-      chapter.levels.find((l) => l.unlocked) ?? chapter.levels[0];
+      decorated.levels.find((l) => l.unlocked) ?? decorated.levels[0];
 
     setActiveChapterId(chapterId);
     setSelectedLevelId(firstUnlocked.id);
   };
 
+  // Handle clicking a node on the map
   const handleSelectLevel = (level) => {
     if (!level.unlocked) return;
     setSelectedLevelId(level.id);
   };
 
-const handleStartFight = () => {
-  if (!onStartBattle) return;
+  // Start the fight for the currently selected level
+  const handleStartFight = () => {
+    if (!onStartBattle) return;
 
-  onStartBattle({
-    chapterId: activeChapter.id,
-    levelId: selectedLevel.id,
-    chapter: activeChapter,
-    level: selectedLevel,
-  });
-};
-
+    onStartBattle({
+      chapterId: activeChapter.id,
+      levelId: selectedLevel.id,
+      chapter: activeChapter,
+      level: selectedLevel,
+    });
+  };
 
   return (
     <div className="campaign-screen">
+      {/* Top row: back / home (wired later if you want) */}
       <div className="campaign-header-row">
         <button className="campaign-back-btn">⟵ BACK</button>
         <div className="campaign-header-spacer" />
@@ -154,8 +222,9 @@ const handleStartFight = () => {
       <div className="campaign-layout">
         {/* LEFT: world selector + map */}
         <div className="campaign-map-column">
+          {/* World strip */}
           <div className="campaign-world-strip">
-            {CAMPAIGN_CHAPTERS.map((chapter) => (
+            {BASE_CAMPAIGN_CHAPTERS.map((chapter) => (
               <button
                 key={chapter.id}
                 className={
@@ -173,6 +242,7 @@ const handleStartFight = () => {
             ))}
           </div>
 
+          {/* Map area */}
           <div className="campaign-map-wrapper">
             <div className="campaign-map-bg" />
             <div className="campaign-map">
@@ -215,7 +285,7 @@ const handleStartFight = () => {
                 );
               })}
 
-              {/* simple dotted vertical path just for style */}
+              {/* Decorative dotted paths */}
               <div className="campaign-path campaign-path--left" />
               <div className="campaign-path campaign-path--right" />
             </div>
@@ -287,6 +357,7 @@ const handleStartFight = () => {
             </section>
           </div>
 
+          {/* Team preview (placeholder for now) */}
           <section className="campaign-team-section">
             <div className="campaign-team-header">
               <div>
@@ -314,6 +385,7 @@ const handleStartFight = () => {
             </div>
           </section>
 
+          {/* Bottom bar: resources + Start fight */}
           <div className="campaign-bottom-bar">
             <div className="campaign-resource-info">
               <span>Gold: {gold}</span>
@@ -324,8 +396,11 @@ const handleStartFight = () => {
               <button
                 className="campaign-btn campaign-btn--primary"
                 onClick={handleStartFight}
+                disabled={!selectedLevel?.unlocked}
               >
-                Start fight
+                {selectedLevel?.id === 0
+                  ? "Begin Tutorial"
+                  : "Start fight"}
               </button>
               <button className="campaign-btn campaign-btn--secondary">
                 Auto

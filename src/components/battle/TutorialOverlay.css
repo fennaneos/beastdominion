@@ -1,0 +1,21 @@
+/* src/components/battle/TutorialOverlay.css */
+
+/* Fiery glow animation for the tutorial box */
+.tutorial-box-fire {
+  animation: fireGlow 1.5s ease-in-out infinite alternate;
+  border-color: #ff6b35 !important;
+  box-shadow: 0 0 30px rgba(255, 107, 53, 0.7), inset 0 0 15px rgba(0, 0, 0, 0.7) !important;
+}
+
+.tutorial-box-fire .tutorial-box-fire-title {
+  color: #ffcc99 !important;
+}
+
+@keyframes fireGlow {
+  from {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.7);
+  }
+  to {
+    box-shadow: 0 0 35px rgba(255, 200, 50, 0.8), inset 0 0 20px rgba(255, 107, 53, 0.4);
+  }
+}

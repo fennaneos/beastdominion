@@ -1,14 +1,13 @@
 // src/components/deckbuilder/DeckBuilder.jsx
 // Main screen for both "Deck Builder" and "Collection" tabs.
 // - In "deck" mode: shows collection grid + current deck sidebar.
-// - In "collection" mode: shows only the grid (no sidebar) and is meant
-//   to display all cards (including locked ones in the future).
+// - In "collection" mode: shows only the grid (no sidebar).
 
 import { useMemo, useState } from "react";
 import { cards, RACES, RARITIES, STARS } from "../../data/cards.js";
 import MonsterCard from "../card/MonsterCard.jsx";
 import CardInspect from "../inspect/CardInspect.jsx";
-import DeckNameModal from "../ui/DeckNameModal.jsx"; // Import the new modal
+import DeckNameModal from "../ui/DeckNameModal.jsx";
 
 import "./DeckBuilder.css";
 
@@ -16,54 +15,34 @@ import "./DeckBuilder.css";
 /*  SFX (Sound Effects) configuration                                      */
 /* ======================================================================= */
 /*
-  Put these files under: public/sfx/
-
   public/sfx/ui-click-soft.wav
-    - Very short (<120ms), gentle "tick" or "tap".
-    - Used for navigation: opening/closing panels, soft UI.
-
   public/sfx/ui-bubble-click.wav
-    - Slightly chunkier "bubble" / "pop".
-    - Used for actions that change state: add/remove/clear deck, start match, etc.
-
   public/sfx/level-up.mp3
-    - Rewarding level-up sound.
-    - Used on EVERY successful level-up.
 */
 
 const SFX_UI_SOFT = "/sfx/ui-click-soft.wav";
 const SFX_UI_BUBBLE = "/sfx/ui-bubble-click.wav";
 const SFX_LEVEL_UP = "/sfx/level-up.mp3";
 
-/**
- * Generic helper: plays any sound URL at a given volume.
- * - Creates a fresh Audio object each time so sounds don't cut off.
- * - Fails silently if Audio or autoplay is blocked.
- */
 function playSfx(url, volume = 1) {
   if (!url) return;
   try {
     const audio = new Audio(url);
     audio.volume = volume;
-    audio.play().catch(() => {
-      // Ignore autoplay / focus errors in dev.
-    });
+    audio.play().catch(() => {});
   } catch {
-    // Ignore in non-audio environments.
+    // ignore
   }
 }
 
-/** Soft UI tick – use for navigation / non-destructive UI. */
 function playUiSoft() {
   playSfx(SFX_UI_SOFT, 0.7);
 }
 
-/** Bubble click – use for state-changing actions (add/remove/clear/test/export). */
 function playUiBubble() {
   playSfx(SFX_UI_BUBBLE, 0.85);
 }
 
-/** Level-up sound – use on every successful level-up. */
 function playLevelUpSound() {
   playSfx(SFX_LEVEL_UP, 0.8);
 }
@@ -72,44 +51,23 @@ function playLevelUpSound() {
 /*  Deck constants                                                          */
 /* ======================================================================= */
 
-// Maximum number of cards allowed in a deck.
 const MAX_DECK_CARDS = 6;
-
-// Base gold cost for the *first* level up.
-// Second level costs 2×, third 3×, etc.
 const BASE_LEVEL_COST = 100;
-
-// Where we persist/export a deck locally.
 const STORAGE_KEY = "bd-saved-deck-v1";
 
 /* ======================================================================= */
 /*  Helper: compute effective level                                         */
 /* ======================================================================= */
-/**
- * Compute effective level for a card, given how many upgrade steps
- * were purchased for its id.
- */
+
 function getEffectiveLevel(baseCard, upgradeSteps) {
-  // Cards can define a starting "level" or use "stars" as their base level.
   const baseLevel = baseCard.level ?? baseCard.stars ?? 1;
-
-  // Cards may define "maxLevel" (e.g. 3 for Whelp); default to 5 if omitted.
   const maxLevel = baseCard.maxLevel ?? 5;
-
-  // Clamp: base + upgrades must never exceed maxLevel.
   return Math.min(baseLevel + upgradeSteps, maxLevel);
 }
 
 /* ======================================================================= */
 /*  Helper: build display version of a card                                 */
 /* ======================================================================= */
-/**
- * Returns a new "display card" object:
- * - Level + stats scaled by upgrades.
- * - Art chosen per level (background + no-bg overlay).
- * - Ability text hidden if not yet unlocked.
- */
-// Replace your current getDisplayCard with this:
 
 function getDisplayCard(baseCard, upgradesMap) {
   const upgradeSteps = upgradesMap[baseCard.id] || 0;
@@ -127,7 +85,7 @@ function getDisplayCard(baseCard, upgradesMap) {
   const attack = atkBase + delta * atkPer;
   const health = hpBase + delta * hpPer;
 
-  // ----- art by level -----
+  // art by level
   let image = baseCard.image;
   if (Array.isArray(baseCard.imagesByLevel) && baseCard.imagesByLevel.length) {
     const idx = Math.min(level, baseCard.imagesByLevel.length) - 1;
@@ -161,44 +119,77 @@ function getDisplayCard(baseCard, upgradesMap) {
 /*  Main Component                                                          */
 /* ======================================================================= */
 
-export default function DeckBuilder({ mode, gold, setGold }) {
+export default function DeckBuilder({
+  mode,
+  gold,
+  setGold,
+  // Controlled deck & upgrades (from App.jsx) – used in "deck" mode
+  playerDeck,
+  onDeckChange,
+  upgrades: externalUpgrades,
+  onUpgradesChange,
+  // Optional props we ignore here but App may pass:
+  collectionCards,
+  onShowTooltip,
+  onHideTooltip,
+}) {
+  /* ----- controlled vs uncontrolled deck / upgrades --------------------- */
+
+  const deckIsControlled = typeof onDeckChange === "function";
+  const upgradesAreControlled = typeof onUpgradesChange === "function";
+
+  // Internal state only used when not controlled (e.g. collection mode).
+  const [internalDeck, setInternalDeck] = useState(playerDeck || []);
+  const [internalUpgrades, setInternalUpgrades] = useState(externalUpgrades || {});
+
+  // Deck is an array of CARD OBJECTS (NOT ids)
+  const deck = deckIsControlled ? (playerDeck || []) : internalDeck;
+  const setDeck = (updater) => {
+    const next =
+      typeof updater === "function" ? updater(deck) : updater;
+    if (deckIsControlled) {
+      onDeckChange(next);
+    } else {
+      setInternalDeck(next);
+    }
+  };
+
+  // Upgrades is a map: { [cardId]: steps }
+  const upgrades = upgradesAreControlled ? (externalUpgrades || {}) : internalUpgrades;
+  const setUpgrades = (updater) => {
+    const next =
+      typeof updater === "function" ? updater(upgrades) : updater;
+    if (upgradesAreControlled) {
+      onUpgradesChange(next);
+    } else {
+      setInternalUpgrades(next);
+    }
+  };
+
   /* ----- UI state -------------------------------------------------------- */
 
   const [search, setSearch] = useState("");
   const [raceFilter, setRaceFilter] = useState("all");
   const [rarityFilter, setRarityFilter] = useState("all");
   const [starFilter, setStarFilter] = useState("all");
-    const [isNameModalOpen, setIsNameModalOpen] = useState(false);
+  const [isNameModalOpen, setIsNameModalOpen] = useState(false);
 
-
-  // Deck is stored just as an array of card ids (duplicates allowed).
-  const [deck, setDeck] = useState([]);
-
-  // Upgrades: { [cardId]: extraLevels }.
-  const [upgrades, setUpgrades] = useState({});
-
-  // Inspect panel open / closed + which card is currently inspected.
   const [inspectOpen, setInspectOpen] = useState(false);
   const [inspectCardId, setInspectCardId] = useState(cards[0]?.id ?? null);
 
-  // Used to mark a card as "recently leveled" so CSS can pulse it, if desired.
   const [recentlyLeveledId, setRecentlyLeveledId] = useState(null);
-
-  // Which card (if any) is currently showing the full-screen "Power Unlocked"
-  // animation overlay.
   const [unlockCardId, setUnlockCardId] = useState(null);
 
   // Generic mini-modal for Test Hand, Deck saved, Deck loaded, etc.
   // modal = { title, message?, lines? }
   const [modal, setModal] = useState(null);
 
-  /* ----- tiny helpers bound to local state ------------------------------ */
+  /* ----- tiny helpers bound to current upgrades -------------------------- */
 
   const getUpgradeSteps = (cardId) => upgrades[cardId] || 0;
 
   const getLevelCost = (cardId) => {
     const steps = getUpgradeSteps(cardId);
-    // 1st upgrade = BASE_LEVEL_COST, 2nd = 2×, etc.
     return BASE_LEVEL_COST * (steps + 1);
   };
 
@@ -206,10 +197,12 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   /*  Derived state                                                          */
   /* ----------------------------------------------------------------------- */
 
-  // How many copies of each card id exist in the deck.
+  // deckCounts: { cardId: count }, using deck as array of card objects
   const deckCounts = useMemo(() => {
     const map = {};
-    for (const id of deck) {
+    for (const cardObj of deck) {
+      if (!cardObj || !cardObj.id) continue;
+      const id = cardObj.id;
       map[id] = (map[id] || 0) + 1;
     }
     return map;
@@ -233,8 +226,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       .map((card) => getDisplayCard(card, upgrades));
   }, [raceFilter, rarityFilter, starFilter, search, upgrades]);
 
-  // Turn the deckCounts map into an array of { card, count } objects
-  // used in the right-hand sidebar.
+  // Deck sidebar: [{ card, count }]
   const deckCards = useMemo(
     () =>
       Object.entries(deckCounts).map(([id, count]) => ({
@@ -251,32 +243,21 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   const openInspect = (cardId) => {
     setInspectCardId(cardId);
     setInspectOpen(true);
-    // Soft click – navigation / open panel.
     playUiSoft();
   };
 
   const closeInspect = () => {
-    // Close the big inspect panel.
     setInspectOpen(false);
-    // Also ensure any unlock overlay or level highlight is cleared.
     setUnlockCardId(null);
     setRecentlyLeveledId(null);
-    // Soft click – closing panel.
     playUiSoft();
   };
 
-  // Raw definition of whatever card is inspected (unevolved).
   const inspectedBaseCard =
     cards.find((c) => c.id === inspectCardId) ?? cards[0];
 
-  // How many extra levels we bought for the inspected card.
   const inspectedUpgrades = getUpgradeSteps(inspectedBaseCard.id);
-
-  // How many copies of that card are currently in the deck.
   const inspectedInDeck = deckCounts[inspectedBaseCard.id] || 0;
-
-  // Display version (stats + art + ability) used by the center card in
-  // the inspect panel.
   const inspectedDisplayCard = getDisplayCard(inspectedBaseCard, upgrades);
 
   /* ----------------------------------------------------------------------- */
@@ -284,22 +265,24 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   /* ----------------------------------------------------------------------- */
 
   const handleAddToDeck = (cardId) => {
-    if (mode !== "deck") return; // collection mode = no deck edit
-    if (deck.length >= MAX_DECK_CARDS) return; // deck full
-    setDeck((prev) => [...prev, cardId]);
-    // Bubble click – impactful action (add card).
+    if (mode !== "deck") return; // collection mode = read-only
+    if (deck.length >= MAX_DECK_CARDS) return;
+
+    const baseCard = cards.find((c) => c.id === cardId);
+    if (!baseCard) return;
+
+    setDeck((prev) => [...prev, baseCard]);
     playUiBubble();
   };
 
   const handleRemoveFromDeck = (cardId) => {
     setDeck((prev) => {
-      const index = prev.indexOf(cardId);
-      if (index === -1) return prev;
+      const idx = prev.findIndex((c) => c && c.id === cardId);
+      if (idx === -1) return prev;
       const copy = [...prev];
-      copy.splice(index, 1);
+      copy.splice(idx, 1);
       return copy;
     });
-    // Bubble click – impactful action (remove card).
     playUiBubble();
   };
 
@@ -323,29 +306,23 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       [cardId]: (prev[cardId] || 0) + 1,
     }));
 
-    // bounce animation (CSS can use .bd-card--leveling based on recentlyLeveledId)
     setRecentlyLeveledId(cardId);
     setTimeout(() => {
       setRecentlyLeveledId((prev) => (prev === cardId ? null : prev));
     }, 700);
 
-    // 🔊 play sound EVERY time a level-up actually succeeds
     playLevelUpSound();
 
-    // full-screen unlock effect WHEN ability just unlocked (e.g. Whelp Lv3)
     if (newLevel >= unlockLevel && currentLevel < unlockLevel) {
       setUnlockCardId(cardId);
     }
   };
 
-  // Clear current deck.
   const handleClearDeck = () => {
     setDeck([]);
     playUiBubble();
   };
 
-  // Simple stub: show a random "starting hand" from the current deck
-  // inside a small modal.
   const handleTestHand = () => {
     playUiBubble();
     if (deck.length === 0) {
@@ -356,7 +333,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       return;
     }
 
-    const uniqueIds = Array.from(new Set(deck));
+    const uniqueIds = Array.from(new Set(deck.map((c) => c.id)));
     const handSize = Math.min(3, uniqueIds.length);
     const sample = uniqueIds
       .sort(() => Math.random() - 0.5)
@@ -373,7 +350,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
     });
   };
 
-  // Export deck to localStorage (for later import).
   const handleExportDeck = () => {
     playUiBubble();
     if (deck.length === 0) {
@@ -387,38 +363,34 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   };
 
   const handleConfirmExport = (deckName) => {
-    const deckIds = playerDeck.map(card => card.id);
+    // deck is array of card objects → export IDs
+    const deckIds = deck.map((card) => card.id);
     const payload = { deckName, deck: deckIds, upgrades };
-    
-    // Log what we are about to save for debugging
+
     console.log("Attempting to save deck:", payload);
 
     try {
-      // ALWAYS overwrite the previous save with the new deck
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       console.log("Save successful.");
-      setModal({ 
-        title: "Deck Saved", 
-        message: `Deck "${deckName}" has been saved and is now your active deck.` 
+      setModal({
+        title: "Deck Saved",
+        message: `Deck "${deckName}" has been saved and is now your active deck.`,
       });
     } catch (error) {
       console.error("Failed to save deck:", error);
-      setModal({ 
-        title: "Error", 
-        message: `Could not save deck. Reason: ${error.message}` // Show the real error
+      setModal({
+        title: "Error",
+        message: `Could not save deck. Reason: ${error.message}`,
       });
     } finally {
       setIsNameModalOpen(false);
     }
   };
 
-    // --- NEW: Function to close the naming modal without saving ---
   const handleCancelExport = () => {
     setIsNameModalOpen(false);
   };
 
-
-  // Import deck from localStorage.
   const handleImportDeck = () => {
     playUiBubble();
     try {
@@ -435,15 +407,23 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       if (!Array.isArray(payload.deck)) {
         throw new Error("Invalid deck payload");
       }
-      setDeck(payload.deck);
+
+      // Convert saved IDs back to card objects
+      const reconstructedDeck = payload.deck
+        .map((id) => cards.find((c) => c.id === id))
+        .filter(Boolean);
+
+      setDeck(reconstructedDeck);
       if (payload.upgrades && typeof payload.upgrades === "object") {
         setUpgrades(payload.upgrades);
       }
+
       setModal({
         title: "Deck loaded",
         message: "Your saved deck has been loaded into the builder.",
       });
-    } catch {
+    } catch (error) {
+      console.error(error);
       setModal({
         title: "Error",
         message: "Saved deck is corrupted or could not be loaded.",
@@ -456,14 +436,11 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   /* ----------------------------------------------------------------------- */
 
   const handleCardDragStart = (cardId, event) => {
-    // Encode the card id into the drag payload.
     event.dataTransfer.setData("text/plain", cardId);
-    // Nice little feedback.
     playUiSoft();
   };
 
   const handleDeckDragOver = (event) => {
-    // Required for drop to fire.
     event.preventDefault();
   };
 
@@ -482,13 +459,11 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   const deckIsFull = deck.length >= MAX_DECK_CARDS;
   const title = mode === "deck" ? "Deck Builder" : "Collection Browser";
 
-  // The card whose power was just unlocked; used in the full-screen overlay.
   const unlockCard =
     unlockCardId != null
       ? getDisplayCard(cards.find((c) => c.id === unlockCardId), upgrades)
       : null;
 
-  // In collection mode we hide the right sidebar entirely.
   const showSidebar = mode === "deck";
 
   /* ----------------------------------------------------------------------- */
@@ -521,7 +496,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
             </div>
 
             <div className="deckbuilder-filters">
-              {/* Search text field */}
               <input
                 type="text"
                 className="db-input db-input--search"
@@ -530,7 +504,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
                 onChange={(e) => setSearch(e.target.value)}
               />
 
-              {/* Race filter */}
               <div className="db-select-wrap">
                 <select
                   className="db-input db-input--select"
@@ -546,7 +519,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
                 <span className="db-select-arrow">▼</span>
               </div>
 
-              {/* Rarity filter */}
               <div className="db-select-wrap">
                 <select
                   className="db-input db-input--select"
@@ -562,7 +534,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
                 <span className="db-select-arrow">▼</span>
               </div>
 
-              {/* Stars filter */}
               <div className="db-select-wrap">
                 <select
                   className="db-input db-input--select"
@@ -586,7 +557,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
             </div>
           </header>
 
-          {/* Card grid for the current filters */}
           <div className="deckbuilder-cardgrid">
             {filteredCards.map((displayCard) => (
               <MonsterCard
@@ -594,7 +564,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
                 card={displayCard}
                 onClick={() => openInspect(displayCard.id)}
                 isLeveling={displayCard.id === recentlyLeveledId}
-                // Drag from collection area into deck sidebar:
                 draggable={mode === "deck"}
                 onDragStart={(e) =>
                   handleCardDragStart(displayCard.id, e)
@@ -626,7 +595,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
               </span>
             </header>
 
-            {/* List of cards in the deck (also a drop target) */}
             <div
               className="deckbuilder-sidebar-body"
               onDragOver={handleDeckDragOver}
@@ -640,6 +608,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
               )}
 
               {deckCards.map(({ card, count }) => {
+                if (!card) return null;
                 const level = getEffectiveLevel(
                   card,
                   getUpgradeSteps(card.id)
@@ -712,8 +681,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
         <button
           className="db-button db-button--outline"
           onClick={() => {
-            // placeholder – will later open the real match screen
-            playUiBubble(); // Play button = slightly juicier click.
+            playUiBubble();
             setModal({
               title: "Start Match",
               message:
@@ -746,8 +714,8 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       {/* ---------------------- Inspect overlay ---------------------------- */}
       <CardInspect
         open={inspectOpen}
-        card={inspectedDisplayCard} // evolved stats + art (+ imageTop)
-        baseCard={inspectedBaseCard} // raw definition for evolutions row
+        card={inspectedDisplayCard}
+        baseCard={inspectedBaseCard}
         upgrades={inspectedUpgrades}
         inDeckCount={inspectedInDeck}
         gold={gold}
@@ -763,7 +731,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
           className="db-unlock-overlay"
           onClick={() => {
             setUnlockCardId(null);
-            playUiSoft(); // Soft click when closing unlock popup.
+            playUiSoft();
           }}
         >
           <div
@@ -771,7 +739,6 @@ export default function DeckBuilder({ mode, gold, setGold }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="db-unlock-title">Power Unlocked!</div>
-            {/* Big animated card in the center */}
             <MonsterCard card={unlockCard} size="large" isLeveling />
             <p className="db-unlock-text">{unlockCard.text}</p>
             <button
@@ -787,7 +754,7 @@ export default function DeckBuilder({ mode, gold, setGold }) {
         </div>
       )}
 
-      {/* ---------------------- Generic modal (Test hand, Deck saved, etc.) */}
+      {/* ---------------------- Generic modal ------------------------------ */}
       {modal && (
         <div
           className="db-modal-overlay"
@@ -821,7 +788,8 @@ export default function DeckBuilder({ mode, gold, setGold }) {
         </div>
       )}
 
-            <DeckNameModal
+      {/* ---------------------- Deck name modal ---------------------------- */}
+      <DeckNameModal
         isOpen={isNameModalOpen}
         onClose={handleCancelExport}
         onConfirm={handleConfirmExport}
