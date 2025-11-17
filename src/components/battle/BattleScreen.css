@@ -1,0 +1,8 @@
+.battle-screen-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #1a1a1e;
+  font-family: Georgia, serif;
+}

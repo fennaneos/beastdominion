@@ -8,6 +8,8 @@ import { useMemo, useState } from "react";
 import { cards, RACES, RARITIES, STARS } from "../../data/cards.js";
 import MonsterCard from "../card/MonsterCard.jsx";
 import CardInspect from "../inspect/CardInspect.jsx";
+import DeckNameModal from "../ui/DeckNameModal.jsx"; // Import the new modal
+
 import "./DeckBuilder.css";
 
 /* ======================================================================= */
@@ -166,6 +168,8 @@ export default function DeckBuilder({ mode, gold, setGold }) {
   const [raceFilter, setRaceFilter] = useState("all");
   const [rarityFilter, setRarityFilter] = useState("all");
   const [starFilter, setStarFilter] = useState("all");
+    const [isNameModalOpen, setIsNameModalOpen] = useState(false);
+
 
   // Deck is stored just as an array of card ids (duplicates allowed).
   const [deck, setDeck] = useState([]);
@@ -379,22 +383,40 @@ export default function DeckBuilder({ mode, gold, setGold }) {
       });
       return;
     }
+    setIsNameModalOpen(true);
+  };
+
+  const handleConfirmExport = (deckName) => {
+    const deckIds = playerDeck.map(card => card.id);
+    const payload = { deckName, deck: deckIds, upgrades };
+    
+    // Log what we are about to save for debugging
+    console.log("Attempting to save deck:", payload);
 
     try {
-      const payload = { deck, upgrades };
+      // ALWAYS overwrite the previous save with the new deck
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      setModal({
-        title: "Deck saved",
-        message:
-          "Your current deck has been saved locally. You can import it later from this device.",
+      console.log("Save successful.");
+      setModal({ 
+        title: "Deck Saved", 
+        message: `Deck "${deckName}" has been saved and is now your active deck.` 
       });
-    } catch {
-      setModal({
-        title: "Error",
-        message: "Could not save deck (local storage not available).",
+    } catch (error) {
+      console.error("Failed to save deck:", error);
+      setModal({ 
+        title: "Error", 
+        message: `Could not save deck. Reason: ${error.message}` // Show the real error
       });
+    } finally {
+      setIsNameModalOpen(false);
     }
   };
+
+    // --- NEW: Function to close the naming modal without saving ---
+  const handleCancelExport = () => {
+    setIsNameModalOpen(false);
+  };
+
 
   // Import deck from localStorage.
   const handleImportDeck = () => {
@@ -798,6 +820,13 @@ export default function DeckBuilder({ mode, gold, setGold }) {
           </div>
         </div>
       )}
+
+            <DeckNameModal
+        isOpen={isNameModalOpen}
+        onClose={handleCancelExport}
+        onConfirm={handleConfirmExport}
+        initialName="My Awesome Deck"
+      />
     </div>
   );
 }

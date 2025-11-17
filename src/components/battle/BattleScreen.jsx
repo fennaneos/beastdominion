@@ -76,6 +76,7 @@ const INITIAL_PLAYER_HAND = [
     health: 3,
     maxHealth: 3,
     rarity: "common",
+    image: "/src/assets/chainbornwhelp-lvl1.png",
   }),
   createUnit({
     name: "Nightprowler",
