@@ -1,23 +1,21 @@
 // src/components/ui/MedievalAlert.jsx
 import "./MedievalAlert.css";
 
-export default function MedievalAlert({ message, onClose }) {
-  // Handle click on the overlay or the button to close
-  const handleClose = (e) => {
-    // Prevent closing if clicking inside the content area
-    if (e.target === e.currentTarget || e.target.tagName === 'BUTTON') {
-      onClose();
-    }
-  };
-
+export default function MedievalAlert({ message, children, onClose }) {
   return (
-    <div className="medieval-alert-overlay" onClick={handleClose}>
-      <div className="medieval-alert-content">
-        <div className="medieval-alert-icon">✦</div>
-        <h2 className="medieval-alert-title">Success</h2>
-        <p className="medieval-alert-message">{message}</p>
+    <div className="medieval-alert-overlay" onClick={onClose}>
+      <div className="medieval-alert-content" onClick={(e) => e.stopPropagation()}>
+        
+        {message && (
+          <div className="medieval-alert-message">{message}</div>
+        )}
+
+        {children && (
+          <div className="medieval-alert-children">{children}</div>
+        )}
+
         <button className="medieval-alert-button" onClick={onClose}>
-          Forsooth
+          OK
         </button>
       </div>
     </div>

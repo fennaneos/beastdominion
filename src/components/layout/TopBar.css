@@ -1,0 +1,75 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, #2a1e13, #4d341f);
+  border-bottom: 2px solid #c79b4b;
+  color: #f5e9d5;
+  font-family: Cinzel, serif;
+}
+
+/* PROFILE AREA */
+.topbar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #c89b3c;
+}
+
+.topbar-userinfo {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.topbar-username {
+  font-size: 13px;
+  font-weight: bold;
+  color: #f8e8c0;
+}
+
+.topbar-logout {
+  margin-top: 2px;
+  padding: 2px 6px;
+  font-size: 11px;
+  background: #522b1b;
+  color: #ffe6bd;
+  border: 1px solid #c79b4b;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.topbar-logout:hover {
+  background: #6d3a24;
+}
+
+/* TITLE */
+.topbar-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #f0d9a1;
+  text-shadow: 1px 1px 4px black;
+}
+
+/* RESOURCES */
+.topbar-resources {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.resource {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #af8743;
+}

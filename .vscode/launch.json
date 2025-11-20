@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug React in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+"userDataDir": "C:/Users/HP/AppData/Local/Google/Chrome/User Data/Default",
+"smartStep": true,
+"sourceMaps": true,
+"resolveSourceMapLocations": [
+  "${workspaceFolder}/src/**",
+  "!**/node_modules/**"
+],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**",
+        "**/react-dom/**",
+        "**/react/**"
+      ]
+    }
+  ]
+}

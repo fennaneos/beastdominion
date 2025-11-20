@@ -1,137 +1,114 @@
 // src/components/battle/BattleCinematic.jsx
 import React, { useState, useEffect } from "react";
-// ============================================================================
-// 4. VICTORY / DEFEAT CINEMATIC
-// ============================================================================
-export function BattleCinematic({ winner, onContinue, battleStats }) {
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showStats, setShowStats] = useState(false);
+
+export default function BattleCinematic({
+  winner,            // "player" | "enemy"
+  goldReward = 0,    // number
+  battleStats = {},  // damage dealt, taken, duration…
+  onContinue,        // callback when pressing Continue
+}) {
+  const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => {
+    // AUDIO
+    let audio;
     if (winner === "player") {
-      setShowConfetti(true);
-      const audio = new Audio("/sfx/victory.mp3");
+      audio = new Audio("/sfx/victory.mp3");
       audio.volume = 0.8;
-      audio.play().catch(() => {});
-    } else if (winner === "enemy") {
-      const audio = new Audio("/sfx/defeat.mp3");
+    } else {
+      audio = new Audio("/sfx/defeat.mp3");
       audio.volume = 0.8;
-      audio.play().catch(() => {});
     }
+    audio.play().catch(() => {});
 
-    const t = setTimeout(() => setShowStats(true), 2000);
+    // DELAY PANEL REVEAL FOR CINEMATIC FEEL
+    const t = setTimeout(() => setShowPanel(true), 300);
     return () => clearTimeout(t);
   }, [winner]);
 
+  if (!showPanel) return null;
+
+  const isVictory = winner === "player";
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0, 0, 0, 0.8)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 2000,
-      }}
-    >
-      <div
-        style={{
-          fontSize: "48px",
-          fontWeight: "bold",
-          color: winner === "player" ? "#FFD700" : "#FF5252",
-          textShadow: "0 0 20px rgba(0,0,0,0.8)",
-          marginBottom: "20px",
-          animation: "fadeIn 1s ease-out",
-        }}
-      >
-        {winner === "player" ? "VICTORY!" : "DEFEAT!"}
+    <div className="battle-result-overlay">
+
+      {/* ============================ */}
+      {/*        FX LAYER BEHIND        */}
+      {/* ============================ */}
+      <div className={`battle-result-fx ${isVictory ? "victory" : "defeat"}`}>
+        <div className="fx-rune-circle" />
+        <div className="fx-swords" />
+
+        {isVictory && (
+          <div className="fx-wings" />
+        )}
+
+        {!isVictory && (
+          <div className="fx-cracks" />
+        )}
       </div>
 
-      {showConfetti && winner === "player" && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-          }}
-        >
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                width: "10px",
-                height: "10px",
-                backgroundColor: [
-                  "#FF5252",
-                  "#4CAF50",
-                  "#2196F3",
-                  "#FFC107",
-                  "#9C27B0",
-                ][Math.floor(Math.random() * 5)],
-                left: `${Math.random() * 100}%`,
-                top: `-10px`,
-                opacity: Math.random(),
-                transform: `rotate(${Math.random() * 360}deg)`,
-                animation: `fall ${3 + Math.random() * 2}s linear forwards`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {/* ============================ */}
+      {/*       MAIN SHIELD PANEL      */}
+      {/* ============================ */}
+      <div className={`battle-result-panel ${isVictory ? "victory" : "defeat"}`}>
 
-      {showStats && (
-        <div
-          style={{
-            background: "rgba(0, 0, 0, 0.7)",
-            borderRadius: "12px",
-            padding: "20px",
-            color: "white",
-            maxWidth: "500px",
-            animation: "fadeIn 1s ease-out",
-          }}
-        >
-          <h3 style={{ textAlign: "center", marginBottom: "15px" }}>
-            Battle Statistics
-          </h3>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <div>Total Damage Dealt: {battleStats.totalDamageDealt}</div>
-              <div>Total Damage Taken: {battleStats.totalDamageTaken}</div>
-              <div>Cards Defeated: {battleStats.cardsDefeated}</div>
+        {/* Decorative wings on the shield itself */}
+        <div className="wing wing-left" />
+        <div className="wing wing-right" />
+
+        <div className="battle-result-header">
+          {isVictory ? "VICTORY" : "DEFEAT"}
+        </div>
+
+        <div className="battle-result-text">
+          {isVictory
+            ? "Your beasts stand triumphant."
+            : "Your forces have fallen in battle."}
+        </div>
+
+        {/* ============================ */}
+        {/*        REWARDS (victory)     */}
+        {/* ============================ */}
+        {isVictory && (
+          <div className="battle-result-rewards">
+            <div className="battle-result-reward-label">Gold Earned</div>
+            <div className="battle-result-gold-amount">
+              +{goldReward}
             </div>
-            <div>
-              <div>Battle Duration: {battleStats.duration} turns</div>
-              <div>
-                Perfect Victory: {battleStats.perfectVictory ? "Yes" : "No"}
-              </div>
-              <div>Experience Gained: +{battleStats.experienceGained}</div>
+            <div className="battle-result-gold-label">
+              Sent to your treasury
+            </div>
+
+            {/* Coin burst */}
+            <div className="battle-result-coins">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="battle-result-coin" />
+              ))}
             </div>
           </div>
+        )}
 
-          <div style={{ marginTop: "15px", textAlign: "center" }}>
-            <button
-              onClick={onContinue}
-              style={{
-                background: winner === "player" ? "#4CAF50" : "#F44336",
-                color: "white",
-                border: "none",
-                borderRadius: "20px",
-                padding: "10px 20px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-            >
-              Continue
-            </button>
-          </div>
+        {/* ============================ */}
+        {/*        BATTLE STATS          */}
+        {/* ============================ */}
+        <div style={{ marginTop: "18px", color: "#ffe8c5", fontSize: "15px" }}>
+          <div>Total Damage Dealt: {battleStats.totalDamageDealt ?? 0}</div>
+          <div>Total Damage Taken: {battleStats.totalDamageTaken ?? 0}</div>
+          <div>Cards Defeated: {battleStats.cardsDefeated ?? 0}</div>
+          <div>Battle Duration: {battleStats.duration ?? 0} turns</div>
         </div>
-      )}
+
+        {/* ============================ */}
+        {/*        CONTINUE BUTTON       */}
+        {/* ============================ */}
+        <div className="battle-result-actions">
+          <button className="battle-result-btn" onClick={onContinue}>
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
-export default BattleCinematic;

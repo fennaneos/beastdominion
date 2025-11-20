@@ -408,3 +408,310 @@ switches to `playMode = "battle"`.
 1. Change signature to accept props:
    ```js
    export default function BattleScreen({ playerDeck, upgrades, levelInfo, onExitBattle })
+
+
+
+
+
+
+
+
+
+
+
+SYSTEM DESIGN
+1) Each player starts with 6 cards in hand
+
+PlayerHand = 6
+
+EnemyHand = 6
+
+2) Each player chooses 3 active field slots
+
+PlayerField = 3 cards
+
+EnemyField = 3 cards
+
+3) The remaining 3 cards stay in reserve (bench)
+
+PlayerBench = remaining cards
+
+EnemyBench = remaining cards
+
+4) Battle turns
+Turn order:
+
+Turn 1 = Player attacks
+
+Turn 2 = Enemy attacks
+
+Turn 3 = Player attacks
+
+Turn 4 = Enemy attacks
+(and so on)
+
+What happens during an attack:
+
+Player selects attacker from their 3 field cards
+
+Player selects a target from opponent’s 3 field cards
+
+Both cards deal damage → simultaneous resolve
+
+defender.hp -= attacker.attack
+attacker.hp -= defender.attack
+
+
+Any killed cards → moved to graveyard
+
+Battle animation:
+
+✓ We will add a medieval-style “jump-hit-shake” animation, TCD style:
+
+Attacker steps forward
+
+Screen shake
+
+Flash / slash effect
+
+Numbers pop (damage)
+
+Attacker steps back
+
+(We can implement this easily using your 3D scene or even CSS animations first.)
+
+✔️ 5) After every attack sequence, field auto-refills
+
+If a field slot becomes empty:
+
+We immediately refill BEFORE the next turn
+
+This avoids complicated logic.
+
+Rules:
+
+If 1 card is missing → draw 1 from bench
+
+If 2 cards missing → draw 2
+
+If 3 cards missing → draw all 3
+
+If bench is empty → slot stays empty
+
+Why immediate refill?
+
+Because:
+
+It keeps the field full
+
+Game stays fair
+
+Easier to implement
+
+Reduces weird double-death timing
+
+✔️ 6) Win condition
+If all 6 of your cards died → you lose.
+If all 6 of enemy cards died → you win.
+
+
+Simple.
+
+
+
+
+
+1. Team structure
+
+Each player brings a team of 6 beasts into battle.
+
+At any time:
+
+Up to 3 active on the field.
+
+Remaining beasts are in hand / reserve (still visible in your current UI).
+
+2. Turn structure
+
+For each player’s turn:
+
+Summon / Swap step
+
+Once per turn, you may:
+
+Summon 1 beast from hand into an empty field slot, or
+
+Swap 1 field beast with 1 in hand.
+
+Attack step
+
+Choose one attacker among your field beasts.
+
+Choose one enemy target (with certain restrictions like “Guard”).
+
+When you hit ATTACK:
+
+Attacker deals damage equal to its ATK to the target’s HP.
+
+Target simultaneously deals damage equal to its ATK to the attacker’s HP.
+
+Any beast with HP ≤ 0 goes to graveyard.
+
+End step
+
+Check passive effects that depend on board state (pack bonuses, alone bonuses, nightfall, etc.).
+
+Win condition:
+
+First player who has no beasts on field AND no beasts in hand loses.
+
+This matches your current implementation quite closely; you’re already most of the way there.
+
+3. Nature-based abilities (dogs, wolves, snakes, etc.)
+
+Here’s a framework of ability types plus concrete examples you can implement later.
+
+Global mechanics
+
+Each beast has:
+ATK, HP, Race (dog, wolf, snake, cat, bird, etc.), maybe Element.
+
+Abilities are either:
+
+Passive (always active when on field)
+
+On Attack (trigger when card attacks)
+
+On Death (trigger when it dies)
+
+On Enter (trigger when summoned)
+
+Dogs – Loyal / Allied
+
+Flavor: Good boys, work better with allies, protect the team.
+
+Example passives:
+
+Pack Guardian (Dog)
+
+Passive: As long as this Dog is on the field, the first time another allied beast would die each turn, reduce the damage so that it survives at 1 HP.
+
+Allied Howl (Dog)
+
+Passive: This Dog gains +1 ATK for each other allied Dog on the field (max +3).
+
+Bodyguard (Dog)
+
+Passive: If an allied beast with lower HP is chosen as a target, the opponent must target this Dog instead (classic “Taunt”).
+
+Wolves – Lone vs Pack, night hunters
+
+Flavor: Dangerous alone, terrifying in a pack or under night.
+
+Introduce a simple Nightfall mechanic:
+
+At turn 5, the battlefield becomes “Night” (or after X attacks total).
+
+Wolves and Snakes get bonuses at night; maybe some other races lose stats slightly.
+
+Example abilities:
+
+Lone Howl (Wolf)
+
+Passive: If this is your only beast on the field, it gains +3 ATK / +3 HP.
+
+Pack Hunt (Wolf)
+
+Passive: If you control 2 or more Wolves, all Wolves gain +1 ATK.
+
+Night Stalker (Wolf)
+
+Passive: During Night, this Wolf’s attacks ignore Guard and can target any enemy.
+
+Snakes – Poison, betrayal, trickery
+
+Flavor: Evil, high risk / high reward, hurt enemies and sometimes allies.
+
+Example abilities:
+
+Venom Bite (Snake)
+
+On Attack: After dealing damage, if the target survives, reduce its ATK by 1 (stacking) to simulate “poison weakening”.
+
+Cold Blood (Snake)
+
+Passive: During Night, this Snake gains +2 ATK.
+
+Betrayal (Snake)
+
+On Attack: After resolving damage, if you have 3 or more beasts on the field, randomly deal 1 damage to one of your other beasts (could kill your own weak ally).
+
+This makes Snakes strong but dangerous to play in big boards → nice tension.
+
+Cats / Felines – Agile, evasive, smug 😼
+
+Flavor: hard to hit, opportunistic.
+
+Nine Lives (Cat)
+
+Passive: The first time this Cat would die, instead set its HP to 1 and remove all debuffs (once per game).
+
+Graceful Dodge (Cat)
+
+On Defense: The first time each turn this Cat is attacked, reduce incoming damage by 50% (round up).
+
+Pounce (Cat)
+
+On Attack: If this Cat attacks an enemy with more ATK, it deals damage first (like “First Strike”).
+
+Birds – Flying, backline snipers
+
+Flavor: ignore frontline blockers.
+
+Fly Over (Bird)
+
+Passive: Can target any enemy, even if they have Guard / Taunt beasts.
+
+Sky Scout (Bird)
+
+On Enter: Look at the top 2 cards of your deck (in your game, maybe: “draw 1 extra card” or “get +1 energy next turn”).
+
+Bears – Tanks
+
+Flavor: soak damage, protect others.
+
+Thick Hide (Bear)
+
+Passive: Takes 1 less damage from all attacks (minimum 1).
+
+Roar (Bear)
+
+On Enter: Until your next turn, enemies must attack this Bear if able.
+
+4. How this ties back into your current system
+
+Right now, your core is already:
+
+6 vs 6
+
+3 on field, 3 in hand
+
+choose attacker & target
+
+both lose HP equal to opponent’s ATK
+
+fight continues until one side has no beasts left
+
+My suggestion is:
+
+Keep this structure (it’s solid and already partly implemented).
+
+Start by giving each race ONE passive based on the ideas above.
+
+Later, extend with:
+
+Nightfall after N turns
+
+On-enter effects when summoned from hand
+
+Legendary beasts with 2 abilities.

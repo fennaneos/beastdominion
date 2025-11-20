@@ -1,0 +1,131 @@
+.brp-overlay {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5000;
+}
+
+/* Panel base */
+.brp-panel {
+  position: relative;
+  width: 460px;
+  padding: 40px 25px 30px;
+  border-radius: 18px;
+  text-align: center;
+  color: #fff4d6;
+  font-family: "Cinzel", serif;
+
+  background: radial-gradient(circle at top,
+      rgba(35, 25, 10, 0.95),
+      rgba(15, 10, 4, 0.98));
+  border: 3px solid #d4af37;
+  box-shadow: 0 0 28px rgba(0,0,0,0.9),
+              inset 0 0 12px rgba(0,0,0,0.6);
+}
+
+/* Wing decorations */
+.brp-wings {
+  position: absolute;
+  top: -42px;
+  left: 50%;
+  width: 440px;
+  height: 120px;
+  transform: translateX(-50%);
+  background: url("/assets/ornate_wings.png") center/contain no-repeat;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+/* Victory vs Defeat */
+.brp-panel.victory {
+  border-color: #ffdd66;
+  box-shadow: 0 0 35px #e8c14b;
+}
+
+.brp-panel.defeat {
+  border-color: #b33;
+  box-shadow: 0 0 35px #b00000;
+  background: radial-gradient(circle at top,
+      rgba(60, 15, 15, 0.95),
+      rgba(25, 5, 5, 0.98));
+}
+
+.brp-title {
+  font-size: 42px;
+  font-weight: bold;
+  text-shadow: 0 0 18px rgba(255, 255, 180, 0.8);
+  margin-bottom: 20px;
+}
+
+/* Reward Box */
+.brp-reward-box {
+  margin: 14px 0 10px;
+  padding: 10px 15px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.brp-reward-value {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 26px;
+  color: #ffe7a1;
+}
+
+.brp-coin-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Flying coins */
+.brp-flying-coin {
+  position: absolute;
+  bottom: 40px;
+  animation: brp-coin-fly 1.6s ease-out forwards;
+  opacity: 0.85;
+}
+
+.brp-flying-coin img {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes brp-coin-fly {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-180px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Button */
+.brp-btn {
+  margin-top: 20px;
+  padding: 10px 22px;
+  font-size: 18px;
+  background: linear-gradient(180deg, #ffe17a, #c98a2d);
+  border: 2px solid #e6c470;
+  border-radius: 12px;
+  color: #38240e;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.brp-btn:hover {
+  transform: scale(1.07);
+  box-shadow: 0 0 14px #ffde8b;
+}

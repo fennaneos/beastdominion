@@ -1,0 +1,165 @@
+/* BattlefieldHand.css - Styles for the horizontal hand cards */
+
+.player-hand-container, .enemy-hand-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px;
+  transform-style: preserve-3d;
+}
+
+.hand-card {
+  width: 120px;
+  height: 170px;
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hand-card:hover {
+  transform: translateY(-15px) scale(1.05);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.7);
+}
+
+.hand-card.guided {
+  animation: guided-pulse 1.5s infinite ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.hand-card.dimmed {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.hand-card.enemy-card {
+  cursor: default;
+}
+
+.card-back {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%);
+  border: 2px solid #4a1f1a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.card-back-symbol {
+  font-size: 48px;
+  color: #8b4513;
+  opacity: 0.7;
+}
+
+.tutorial-finger {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  animation: finger-bounce 1s infinite ease-in-out;
+}
+
+@keyframes guided-pulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+@keyframes finger-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* CardTooltip.css - Styles for the card tooltip */
+.card-tooltip {
+  position: absolute;
+  background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%);
+  border: 2px solid #d4af37;
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 200px;
+  max-width: 250px;
+  color: #f8e6c8;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 5px;
+}
+
+.tooltip-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.tooltip-rarity {
+  text-transform: capitalize;
+  font-size: 14px;
+  color: #d4af37;
+}
+
+.tooltip-image {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.tooltip-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.placeholder-image {
+  font-size: 24px;
+  text-transform: capitalize;
+  opacity: 0.7;
+}
+
+.tooltip-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tooltip-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tooltip-stat span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.tooltip-stat strong {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.tooltip-ability {
+  font-size: 14px;
+  line-height: 1.4;
+  font-style: italic;
+  opacity: 0.9;
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
+  padding-top: 8px;
+}

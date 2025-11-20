@@ -1,0 +1,540 @@
+/* src/components/battle/BattlefieldAnime2D.css */
+
+/* Main wrapper with dark theme */
+.anime-battle-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Background layers */
+.anime-bg-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(30, 10, 40, 0.9) 0%, rgba(10, 5, 15, 0.95) 100%);
+  z-index: -3;
+}
+
+.anime-bg-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(120, 50, 180, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 50, 180, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -2;
+}
+
+.anime-bg-glow {
+  position: absolute;
+  width: 100%;
+  height: 200px;
+  z-index: -1;
+}
+
+.anime-bg-glow--top {
+  top: 0;
+  background: radial-gradient(ellipse at center top, rgba(180, 50, 80, 0.3) 0%, transparent 70%);
+}
+
+.anime-bg-glow--bottom {
+  bottom: 0;
+  background: radial-gradient(ellipse at center bottom, rgba(50, 80, 180, 0.3) 0%, transparent 70%);
+}
+
+/* Decorative elements */
+.anime-decoration {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.anime-decoration--flame-top-left {
+  top: 10px;
+  left: 10px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff4500" d="M50,10 C60,30 70,20 60,40 C70,50 50,60 50,80 C50,60 30,50 40,40 C30,20 40,30 50,10 Z" /></svg>');
+  filter: drop-shadow(0 0 10px rgba(255, 69, 0, 0.7));
+  animation: flicker 2s infinite alternate;
+}
+
+.anime-decoration--flame-top-right {
+  top: 10px;
+  right: 10px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff4500" d="M50,10 C60,30 70,20 60,40 C70,50 50,60 50,80 C50,60 30,50 40,40 C30,20 40,30 50,10 Z" /></svg>');
+  filter: drop-shadow(0 0 10px rgba(255, 69, 0, 0.7));
+  animation: flicker 2s infinite alternate-reverse;
+}
+
+.anime-decoration--skull-bottom-left {
+  bottom: 10px;
+  left: 10px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ffffff" d="M50,20 C70,20 80,40 80,60 C80,80 70,90 50,90 C30,90 20,80 20,60 C20,40 30,20 50,20 Z M40,50 C35,50 30,55 30,60 C30,65 35,70 40,70 C45,70 50,65 50,60 C50,55 45,50 40,50 Z M60,50 C55,50 50,55 50,60 C50,65 55,70 60,70 C65,70 70,65 70,60 C70,55 65,50 60,50 Z" /></svg>');
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.anime-decoration--skull-bottom-right {
+  bottom: 10px;
+  right: 10px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ffffff" d="M50,20 C70,20 80,40 80,60 C80,80 70,90 50,90 C30,90 20,80 20,60 C20,40 30,20 50,20 Z M40,50 C35,50 30,55 30,60 C30,65 35,70 40,70 C45,70 50,65 50,60 C50,55 45,50 40,50 Z M60,50 C55,50 50,55 50,60 C50,65 55,70 60,70 C65,70 70,65 70,60 C70,55 65,50 60,50 Z" /></svg>');
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+@keyframes flicker {
+  0% { opacity: 0.7; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Player stats */
+.player-stats {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  margin: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.player-stats--player {
+  align-self: flex-end;
+  background: linear-gradient(to right, rgba(0, 50, 100, 0.7), rgba(0, 0, 0, 0.7));
+  border-color: rgba(0, 100, 200, 0.3);
+}
+
+.player-stats--enemy {
+  align-self: flex-start;
+  background: linear-gradient(to right, rgba(100, 0, 0, 0.7), rgba(0, 0, 0, 0.7));
+  border-color: rgba(200, 0, 0, 0.3);
+}
+
+.player-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  margin-right: 15px;
+  overflow: hidden;
+  position: relative;
+}
+
+.player-avatar-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.player-stats-row {
+  display: flex;
+  gap: 15px;
+}
+
+.player-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-icon {
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.attack-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%23ff4444" d="M10,2 L18,10 L14,10 L14,18 L6,18 L6,10 L2,10 Z" /></svg>');
+}
+
+.health-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%2344ff44" d="M10,18 C5,14 2,10 2,7 C2,4 4,2 7,2 C8.5,2 9.5,2.5 10,3.5 C10.5,2.5 11.5,2 13,2 C16,2 18,4 18,7 C18,10 15,14 10,18 Z" /></svg>');
+}
+
+.life-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%234444ff" d="M10,2 L12,8 L18,8 L13,12 L15,18 L10,14 L5,18 L7,12 L2,8 L8,8 Z" /></svg>');
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Field and hand rows */
+.anime-field-row, .anime-hand-row {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  z-index: 1;
+}
+
+.anime-row-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 5px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.anime-slot-row, .anime-hand-scroller {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* Field slots */
+.anime-slot {
+  width: 120px;
+  height: 160px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.anime-slot-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.anime-slot--player .anime-slot-inner {
+  border-color: rgba(0, 100, 200, 0.3);
+  box-shadow: 0 0 10px rgba(0, 100, 200, 0.2);
+}
+
+.anime-slot--enemy .anime-slot-inner {
+  border-color: rgba(200, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(200, 0, 0, 0.2);
+}
+
+.anime-slot--selected .anime-slot-inner {
+  border-color: rgba(0, 200, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.anime-slot--target .anime-slot-inner {
+  border-color: rgba(0, 255, 100, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 100, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.anime-slot--valid-drop .anime-slot-inner {
+  border-color: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  background: rgba(0, 100, 0, 0.3);
+}
+
+.anime-slot--invalid-drop .anime-slot-inner {
+  border-color: rgba(255, 0, 0, 0.8);
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+  background: rgba(100, 0, 0, 0.3);
+}
+
+.anime-slot--dying .anime-slot-inner {
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.anime-card-wrapper {
+  width: 90%;
+  height: 90%;
+  transition: transform 0.2s ease;
+}
+
+.anime-card-wrapper:hover {
+  transform: translateY(-5px);
+}
+
+.anime-card-wrapper.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.anime-empty-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Hand slots */
+.anime-hand-slot {
+  width: 80px;
+  height: 110px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.anime-hand-slot-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.anime-hand-slot--player .anime-hand-slot-inner {
+  border-color: rgba(0, 100, 200, 0.3);
+  box-shadow: 0 0 10px rgba(0, 100, 200, 0.2);
+}
+
+.anime-hand-slot--enemy .anime-hand-slot-inner {
+  border-color: rgba(200, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(200, 0, 0, 0.2);
+}
+
+.anime-hand-placeholder {
+  width: 60px;
+  height: 80px;
+  border-radius: 5px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Damage effects */
+.anime-damage-fx {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.anime-damage-number {
+  position: absolute;
+  top: 30%;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff3333;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  animation: floatUp 1s ease-out forwards;
+}
+
+.anime-damage-scratches {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="none" stroke="%23ff3333" stroke-width="2" d="M20,20 L80,80 M30,80 L70,20" /></svg>');
+  opacity: 0.7;
+  animation: fadeInOut 0.5s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+/* Center UI */
+.anime-center-ui {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+/* Graveyard */
+.anime-graveyard {
+  position: absolute;
+  bottom: 10px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.anime-graveyard--player {
+  left: 10px;
+  border: 1px solid rgba(0, 100, 200, 0.3);
+}
+
+.anime-graveyard--enemy {
+  right: 10px;
+  border: 1px solid rgba(200, 0, 0, 0.3);
+}
+
+/* Right controls */
+.anime-right-controls {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 5;
+}
+
+/* Sword HUD */
+.anime-sword-hud {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.anime-sword-hud--active {
+  border-color: rgba(255, 200, 0, 0.8);
+  box-shadow: 0 0 15px rgba(255, 200, 0, 0.5);
+  animation: glow 2s infinite alternate;
+}
+
+.anime-sword-hud--disabled {
+  border-color: rgba(100, 100, 100, 0.5);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.anime-sword-hud--hovered {
+  transform: scale(1.05);
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 15px rgba(255, 200, 0, 0.5); }
+  100% { box-shadow: 0 0 25px rgba(255, 200, 0, 0.8); }
+}
+
+.anime-sword-hud-inner {
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.anime-sword-hud-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.anime-sword-icon {
+  width: 40px;
+  height: 40px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path fill="%23ffffff" d="M20,5 L25,15 L35,15 L27,22 L30,32 L20,25 L10,32 L13,22 L5,15 L15,15 Z" /></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-bottom: 5px;
+}
+
+.anime-sword-hud-label {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* End turn button */
+.anime-end-turn-btn {
+  width: 100px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.anime-end-turn-btn:hover {
+  border-color: rgba(255, 200, 0, 0.8);
+  box-shadow: 0 0 10px rgba(255, 200, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.anime-end-turn-inner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.anime-end-turn-icon {
+  width: 20px;
+  height: 20px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%23ffffff" d="M10,2 C14,2 18,6 18,10 C18,14 14,18 10,18 C6,18 2,14 2,10 C2,6 6,2 10,2 Z M10,4 C7,4 4,7 4,10 C4,13 7,16 10,16 C13,16 16,13 16,10 C16,7 13,4 10,4 Z M9,6 L9,10 L12,12 L13,11 L10.5,9.5 L10.5,6 Z" /></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.anime-end-turn-label {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+}

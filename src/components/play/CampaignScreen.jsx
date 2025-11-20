@@ -8,10 +8,12 @@ import "./CampaignScreen.css";
  * Props:
  *  - gold, shards
  *  - onStartBattle({ chapterId, levelId, chapter, level })
+ *  - onStartTutorial()
+ *  - onSkipTutorial()   ★ NEW
  *  - progress: {
  *      [chapterId]: {
- *        maxUnlockedLevel: number,   // highest unlocked level index (0 = tutorial)
- *        completedLevels: number[]   // levels actually cleared
+ *        maxUnlockedLevel: number,
+ *        completedLevels: number[]
  *      }
  *    }
  */
@@ -21,7 +23,6 @@ function generateDarkwoodLevels() {
   const xs = [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62, 62];
   const ys = [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88, 30];
 
-  // id 0 = tutorial, then 1..11 regular levels
   return Array.from({ length: 12 }).map((_, idx) => ({
     id: idx,
     label: idx === 0 ? "T" : idx,
@@ -30,7 +31,7 @@ function generateDarkwoodLevels() {
   }));
 }
 
-// Generic helper for later chapters – all levels 1..11
+// Standard 1..11 levels
 function generateStandardLevels() {
   const xs = [25, 42, 18, 40, 20, 40, 20, 40, 62, 62, 62];
   const ys = [88, 80, 70, 60, 52, 42, 32, 22, 52, 70, 88];
@@ -115,28 +116,27 @@ export default function CampaignScreen({
   gold,
   shards,
   onStartBattle,
+  onStartTutorial,
+  onSkipTutorial,       // ★ NEW
   progress = {},
 }) {
-  // Which world strip pill is selected
   const [activeChapterId, setActiveChapterId] = useState(
     BASE_CAMPAIGN_CHAPTERS[0].id
   );
 
-  // Which node on the map is selected (per chapter)
   const [selectedLevelId, setSelectedLevelId] = useState(
     BASE_CAMPAIGN_CHAPTERS[0].levels[0].id
   );
 
-  // Utility: merge base config with progression
+  // Apply saved progress
   const decorateChapterWithProgress = (chapter) => {
     const chapterProgress = progress[chapter.id] || {
-      maxUnlockedLevel: chapter.id === "darkwood" ? 0 : 1,
+      maxUnlockedLevel: 1,          // ★ Level 1 unlocked by default
       completedLevels: [],
     };
 
     const decoratedLevels = chapter.levels.map((level) => {
-      const isTutorial =
-        chapter.id === "darkwood" && level.id === 0;
+      const isTutorial = chapter.id === "darkwood" && level.id === 0;
 
       const unlocked = isTutorial
         ? true
@@ -145,38 +145,27 @@ export default function CampaignScreen({
       const completed =
         chapterProgress.completedLevels?.includes(level.id) ?? false;
 
-      // "current" node = highest unlocked level in that chapter
       const isCurrent =
         unlocked &&
         level.id === (chapterProgress.maxUnlockedLevel ?? 0);
 
-      return {
-        ...level,
-        unlocked,
-        completed,
-        current: isCurrent,
-      };
+      return { ...level, unlocked, completed, current: isCurrent };
     });
 
-    return {
-      ...chapter,
-      levels: decoratedLevels,
-    };
+    return { ...chapter, levels: decoratedLevels };
   };
 
-  // Active chapter object (with unlocks applied)
   const rawActive =
     BASE_CAMPAIGN_CHAPTERS.find((c) => c.id === activeChapterId) ??
     BASE_CAMPAIGN_CHAPTERS[0];
   const activeChapter = decorateChapterWithProgress(rawActive);
 
-  // Selected level object, falling back to first unlocked if needed
   const selectedLevel =
     activeChapter.levels.find((l) => l.id === selectedLevelId && l.unlocked) ??
     activeChapter.levels.find((l) => l.unlocked) ??
     activeChapter.levels[0];
 
-  // Handle chapter pill click
+  // Handle selecting chapter
   const handleSelectChapter = (chapterId) => {
     const chapter = BASE_CAMPAIGN_CHAPTERS.find((c) => c.id === chapterId);
     if (!chapter) return;
@@ -189,27 +178,33 @@ export default function CampaignScreen({
     setSelectedLevelId(firstUnlocked.id);
   };
 
-  // Handle clicking a node on the map
   const handleSelectLevel = (level) => {
     if (!level.unlocked) return;
     setSelectedLevelId(level.id);
   };
 
-  // Start the fight for the currently selected level
   const handleStartFight = () => {
-    if (!onStartBattle) return;
+    const isTutorial =
+      activeChapter.id === "darkwood" && selectedLevel.id === 0;
 
-    onStartBattle({
-      chapterId: activeChapter.id,
-      levelId: selectedLevel.id,
-      chapter: activeChapter,
-      level: selectedLevel,
-    });
+    if (isTutorial) {
+      if (onStartTutorial) onStartTutorial();
+      return;
+    }
+
+    if (onStartBattle) {
+      onStartBattle({
+        chapterId: activeChapter.id,
+        levelId: selectedLevel.id,
+        chapter: activeChapter,
+        level: selectedLevel,
+      });
+    }
   };
 
   return (
     <div className="campaign-screen">
-      {/* Top row: back / home (wired later if you want) */}
+      {/* Top row */}
       <div className="campaign-header-row">
         <button className="campaign-back-btn">⟵ BACK</button>
         <div className="campaign-header-spacer" />
@@ -220,9 +215,8 @@ export default function CampaignScreen({
       </div>
 
       <div className="campaign-layout">
-        {/* LEFT: world selector + map */}
+        {/* LEFT MAP AREA */}
         <div className="campaign-map-column">
-          {/* World strip */}
           <div className="campaign-world-strip">
             {BASE_CAMPAIGN_CHAPTERS.map((chapter) => (
               <button
@@ -235,14 +229,11 @@ export default function CampaignScreen({
                 }
                 onClick={() => handleSelectChapter(chapter.id)}
               >
-                <div className="campaign-world-icon">
-                  {chapter.index}
-                </div>
+                <div className="campaign-world-icon">{chapter.index}</div>
               </button>
             ))}
           </div>
 
-          {/* Map area */}
           <div className="campaign-map-wrapper">
             <div className="campaign-map-bg" />
             <div className="campaign-map">
@@ -267,16 +258,11 @@ export default function CampaignScreen({
                     onClick={() => handleSelectLevel(level)}
                   >
                     <div className="campaign-node-diamond">
-                      <span className="campaign-node-label">
-                        {level.label}
-                      </span>
+                      <span className="campaign-node-label">{level.label}</span>
                     </div>
                     <div className="campaign-node-stars">
                       {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="campaign-node-star"
-                        >
+                        <span key={i} className="campaign-node-star">
                           ★
                         </span>
                       ))}
@@ -285,34 +271,28 @@ export default function CampaignScreen({
                 );
               })}
 
-              {/* Decorative dotted paths */}
+              {/* Decorative paths */}
               <div className="campaign-path campaign-path--left" />
               <div className="campaign-path campaign-path--right" />
             </div>
           </div>
         </div>
 
-        {/* RIGHT: chapter + level info */}
+        {/* RIGHT INFO PANEL */}
         <div className="campaign-info-column">
           <div className="campaign-chapter-header">
             <div className="campaign-chapter-tag">
               Chapter {activeChapter.index}
             </div>
-            <h1 className="campaign-chapter-title">
-              {activeChapter.name}
-            </h1>
+            <h1 className="campaign-chapter-title">{activeChapter.name}</h1>
             <div className="campaign-difficulty">
               <span className="campaign-skull">💀</span>
               <span>{activeChapter.difficulty}</span>
-              <span className="campaign-difficulty-label">
-                CURRENT
-              </span>
+              <span className="campaign-difficulty-label">CURRENT</span>
             </div>
           </div>
 
-          <p className="campaign-description">
-            {activeChapter.description}
-          </p>
+          <p className="campaign-description">{activeChapter.description}</p>
 
           <div className="campaign-info-row">
             <section className="campaign-section campaign-section--wide">
@@ -334,19 +314,15 @@ export default function CampaignScreen({
                   {activeChapter.recommendedPower}
                 </span>
               </div>
+
               <div className="campaign-enemy-list">
                 {activeChapter.enemies.map((enemy) => (
-                  <div
-                    key={enemy.id}
-                    className="campaign-enemy-card"
-                  >
+                  <div key={enemy.id} className="campaign-enemy-card">
                     <div className="campaign-enemy-avatar">
                       {enemy.name[0]}
                     </div>
                     <div className="campaign-enemy-text">
-                      <div className="campaign-enemy-name">
-                        {enemy.name}
-                      </div>
+                      <div className="campaign-enemy-name">{enemy.name}</div>
                       <div className="campaign-enemy-meta">
                         Power {enemy.power}
                       </div>
@@ -357,56 +333,61 @@ export default function CampaignScreen({
             </section>
           </div>
 
-          {/* Team preview (placeholder for now) */}
+          {/* Team preview */}
           <section className="campaign-team-section">
             <div className="campaign-team-header">
               <div>
-                <div className="campaign-team-title">
-                  Team #1
-                </div>
+                <div className="campaign-team-title">Team #1</div>
                 <div className="campaign-team-power">
                   Power {activeChapter.recommendedPower}
                 </div>
               </div>
-              <button className="campaign-edit-btn">
-                Edit team
-              </button>
+              <button className="campaign-edit-btn">Edit team</button>
             </div>
             <div className="campaign-team-slots">
               <div className="campaign-team-slot campaign-team-slot--filled">
                 1
               </div>
-              <div className="campaign-team-slot campaign-team-slot--empty">
-                +
-              </div>
-              <div className="campaign-team-slot campaign-team-slot--empty">
-                +
-              </div>
+              <div className="campaign-team-slot campaign-team-slot--empty">+</div>
+              <div className="campaign-team-slot campaign-team-slot--empty">+</div>
             </div>
           </section>
 
-          {/* Bottom bar: resources + Start fight */}
+          {/* Bottom bar */}
           <div className="campaign-bottom-bar">
             <div className="campaign-resource-info">
               <span>Gold: {gold}</span>
               <span>Shards: {shards}</span>
               <span>Stamina cost: {activeChapter.staminaCost}</span>
             </div>
+
             <div className="campaign-start-buttons">
+
+              {/* ★ SKIP TUTORIAL BUTTON — appears only on level 0 */}
+              {selectedLevel?.id === 0 &&
+                activeChapter.id === "darkwood" && (
+                  <button
+                    className="campaign-btn campaign-btn--secondary"
+                    onClick={onSkipTutorial}
+                  >
+                    Skip Tutorial
+                  </button>
+                )}
+
               <button
                 className="campaign-btn campaign-btn--primary"
                 onClick={handleStartFight}
                 disabled={!selectedLevel?.unlocked}
               >
-                {selectedLevel?.id === 0
-                  ? "Begin Tutorial"
-                  : "Start fight"}
+                {selectedLevel?.id === 0 ? "Begin Tutorial" : "Start fight"}
               </button>
+
               <button className="campaign-btn campaign-btn--secondary">
                 Auto
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>

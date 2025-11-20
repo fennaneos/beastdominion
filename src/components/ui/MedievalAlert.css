@@ -1,4 +1,5 @@
-/* src/components/ui/MedievalAlert.css */
+/* src/components/ui/MedievalAlert.css */ 
+
 .medieval-alert-overlay {
   position: fixed;
   top: 0;
@@ -9,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1002; /* Higher than the deck loader */
+  z-index: 2000;
   font-family: 'Cinzel', serif;
   animation: fadeIn 0.3s ease-out;
 }
@@ -26,15 +27,15 @@
   padding: 30px 40px;
   color: #f4e4c1;
   text-align: center;
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(0,0,0,0.7);
   max-width: 400px;
   width: 90%;
-  animation: slideInScale 0.4s ease-out;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(0,0,0,0.7);
+  animation: slideInScale 0.35s ease-out;
 }
 
 @keyframes slideInScale {
   from {
-    transform: translateY(-50px) scale(0.9);
+    transform: translateY(-50px) scale(0.85);
     opacity: 0;
   }
   to {
@@ -43,25 +44,15 @@
   }
 }
 
-.medieval-alert-icon {
-  font-size: 3em;
-  color: #FFD700;
-  text-shadow: 0 0 10px #FFD700;
-  margin-bottom: 10px;
-}
-
-.medieval-alert-title {
-  font-size: 2em;
-  color: #FFD700;
-  margin: 0 0 15px 0;
-  text-shadow: 2px 2px 4px #000;
-}
-
 .medieval-alert-message {
   font-family: 'MedievalSharp', cursive;
-  font-size: 1.2em;
-  margin: 0 0 25px 0;
+  font-size: 1.3em;
+  margin-bottom: 25px;
   line-height: 1.5;
+}
+
+.medieval-alert-children {
+  margin-bottom: 20px;
 }
 
 .medieval-alert-button {
@@ -73,12 +64,12 @@
   font-size: 1.1em;
   border-radius: 5px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   text-shadow: 1px 1px 2px #000;
 }
 
 .medieval-alert-button:hover {
   background-color: #A0522D;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }

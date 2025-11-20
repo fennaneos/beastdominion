@@ -565,3 +565,9 @@
   margin-top: 4px;
   align-self: flex-end;
 }
+
+
+.deckbuilder-main {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 1.1fr);
+}

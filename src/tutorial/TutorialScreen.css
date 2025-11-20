@@ -1,0 +1,863 @@
+/* ==========================================================================
+   BATTLESCREEN — CLEAN FULL REWRITE
+   Cinematic Medieval Theme — Pure CSS (no PNG assets)
+   ========================================================================== */
+
+/* ROOT RESET */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: "Georgia", serif;
+  background: #06040a;
+}
+
+/* MAIN LAYOUT */
+.battle-screen-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  background: radial-gradient(circle at top, #1b1020, #06040a);
+}
+
+/* ==========================================================================
+   RIGHT PANEL (2D INFO)
+   ========================================================================== */
+
+.battle-info-panel {
+  flex: 0 0 30%;
+  padding: 16px 20px;
+  background: #050509;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  color: #f5e6c7;
+  display: flex;
+  flex-direction: column;
+}
+
+.battle-info-header {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #f6e0b5;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.battle-info-section {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.battle-info-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* LOG */
+.battle-log-container {
+  flex: 1;
+  background: rgba(5,5,12,0.9);
+  padding: 8px;
+  font-size: 12px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.battle-log-header {
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.battle-log-entry {
+  margin-bottom: 4px;
+}
+
+/* BUTTONS */
+.battle-controls {
+  margin-top: 12px;
+}
+
+.battle-controls button {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: #f5f5f5;
+  font-size: 12px;
+  font-family: "Cinzel", serif;
+  cursor: pointer;
+}
+
+.battle-controls button:hover {
+  background: #3a2a1a;
+}
+
+/* ==========================================================================
+   CINEMATIC RESULT OVERLAY
+   ========================================================================== */
+
+.battle-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.75), rgba(0,0,0,0.92));
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   PANEL SHAPE: SHIELD WITH DECORATIVE WINGS (Pure CSS)
+   ========================================================================== */
+
+.battle-result-panel {
+  position: relative;
+  width: 540px;
+  padding: 60px 30px 32px;
+  text-align: center;
+  border-radius: 22px;
+  box-shadow: 0 0 50px rgba(0,0,0,0.9);
+  animation: panelPop 0.6s ease-out;
+  overflow: visible;
+}
+
+@keyframes panelPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   BACK AURA / ENERGY GLOW
+   ========================================================================== */
+
+.battle-result-panel::before,
+.battle-result-panel::after {
+  content: "";
+  position: absolute;
+  width: 180%;
+  height: 180%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(55px);
+  z-index: -2;
+}
+
+.battle-result-panel.victory::before {
+  background: radial-gradient(circle, rgba(255,220,120,0.55), rgba(255,180,30,0.25), transparent 70%);
+}
+
+.battle-result-panel.defeat::before {
+  background: radial-gradient(circle, rgba(255,40,40,0.55), rgba(130,0,0,0.4), transparent 70%);
+}
+
+.battle-result-panel.defeat::after {
+  background: radial-gradient(circle, rgba(255,0,0,0.3), transparent 70%);
+  animation: flamePulse 2s infinite ease-in-out alternate;
+}
+
+@keyframes flamePulse {
+  from { opacity: 0.4; transform: translate(-50%,-50%) scale(1); }
+  to   { opacity: 0.85; transform: translate(-50%,-50%) scale(1.15); }
+}
+
+/* ==========================================================================
+   ORNATE WINGS — PURE CSS using ::before & ::after
+   ========================================================================== */
+
+.battle-result-panel .wing {
+  content: "";
+  position: absolute;
+  top: 40px;
+  width: 200px;
+  height: 80px;
+  filter: blur(12px);
+  opacity: 0.55;
+  z-index: -1;
+}
+
+/* Left wing shape */
+.battle-result-panel .wing-left {
+  left: -140px;
+  background: radial-gradient(ellipse at right, rgba(255,255,200,0.45), transparent 65%);
+  transform: rotate(-10deg);
+}
+
+.battle-result-panel.defeat .wing-left {
+  background: radial-gradient(ellipse at right, rgba(255,80,80,0.6), transparent 65%);
+}
+
+/* Right wing shape */
+.battle-result-panel .wing-right {
+  right: -140px;
+  background: radial-gradient(ellipse at left, rgba(255,255,200,0.45), transparent 65%);
+  transform: rotate(10deg);
+}
+
+.battle-result-panel.defeat .wing-right {
+  background: radial-gradient(ellipse at left, rgba(255,80,80,0.6), transparent 65%);
+}
+
+/* ==========================================================================
+   SHIELD BODY
+   ========================================================================== */
+
+.battle-result-panel.victory {
+  background: linear-gradient(180deg, #f9e9b1 0%, #d4a645 45%, #8a5e1d 100%);
+  border: 3px solid #ffeebc;
+  box-shadow:
+    0 0 45px rgba(255,240,150,0.5),
+    inset 0 0 25px rgba(255,255,255,0.3),
+    inset 0 0 6px rgba(0,0,0,0.9);
+}
+
+.battle-result-panel.defeat {
+  background: linear-gradient(180deg, #b01a1a 0%, #6d0808 45%, #300303 100%);
+  border: 3px solid #ff7070;
+  box-shadow:
+    0 0 40px rgba(255,40,40,0.5),
+    inset 0 0 25px rgba(0,0,0,0.8);
+}
+
+/* ==========================================================================
+   TITLE
+   ========================================================================== */
+
+.battle-result-header {
+  font-family: "Cinzel", serif;
+  font-size: 62px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 12px;
+}
+
+.battle-result-panel.victory .battle-result-header {
+  color: #fff9d0;
+  text-shadow:
+    0 0 32px rgba(255,220,120,0.9),
+    0 0 45px rgba(255,200,80,0.7);
+}
+
+.battle-result-panel.defeat .battle-result-header {
+  color: #ffd0d0;
+  text-shadow:
+    0 0 32px rgba(255,60,60,1),
+    0 0 45px rgba(255,0,0,0.7);
+}
+
+/* ==========================================================================
+   DESCRIPTION
+   ========================================================================== */
+
+.battle-result-text {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #fff4d8;
+  margin-bottom: 24px;
+  text-shadow: 0 0 8px rgba(0,0,0,0.6);
+}
+
+/* ==========================================================================
+   REWARD BOX
+   ========================================================================== */
+
+.battle-result-rewards {
+  margin-top: 8px;
+  padding: 14px 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #3b2a11, #1a1105);
+  border: 1px solid rgba(255,220,150,0.5);
+  position: relative;
+  overflow: visible;
+}
+
+.battle-result-reward-label {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffd991;
+  margin-bottom: 8px;
+}
+
+.battle-result-gold-amount {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: "Cinzel", serif;
+  color: #fff3c0;
+  text-shadow:
+    0 0 18px rgba(255,230,140,1),
+    0 0 28px rgba(255,220,120,0.6);
+}
+
+.battle-result-gold-label {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffe9bd;
+}
+
+/* ==========================================================================
+   COIN BURST
+   ========================================================================== */
+
+.battle-result-coins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.battle-result-coin {
+  position: absolute;
+  bottom: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff7c4, #f4c05a 55%, #a86b0f);
+  box-shadow:
+    0 0 12px rgba(255,200,120,0.6),
+    0 0 24px rgba(255,210,140,0.35);
+  animation: coinRise 1.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes coinRise {
+  0%   { transform: translateY(0px) scale(0.6); opacity: 0; }
+  20%  { opacity: 1; }
+  60%  { transform: translateY(-80px) scale(1); opacity: 0.9; }
+  100% { transform: translateY(-140px) scale(0.85); opacity: 0; }
+}
+
+.battle-result-coin:nth-child(1) { left: 20%; animation-delay: 0s; }
+.battle-result-coin:nth-child(2) { left: 38%; animation-delay: 0.2s; }
+.battle-result-coin:nth-child(3) { left: 50%; animation-delay: 0.32s; }
+.battle-result-coin:nth-child(4) { left: 62%; animation-delay: 0.45s; }
+.battle-result-coin:nth-child(5) { left: 80%; animation-delay: 0.6s; }
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
+.battle-result-actions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.battle-result-btn {
+  padding: 12px 30px;
+  border-radius: 999px;
+  border: 2px solid #ffe2a8;
+  background: linear-gradient(180deg, #f4d48a, #b97d2c);
+  color: #3a2407;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0,0,0,0.6);
+  transition: 0.15s ease-out;
+}
+
+.battle-result-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 22px rgba(255,240,180,0.5);
+}
+
+
+/* ============================================================
+   FX LAYER BEHIND THE PANEL
+   ============================================================ */
+.battle-result-fx {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centered behind the panel */
+.battle-result-fx.victory,
+.battle-result-fx.defeat {
+  z-index: 1;
+}
+
+/* ============================================================
+   RUNIC CIRCLE
+   ============================================================ */
+.fx-rune-circle {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 220, 150, 0.35);
+  box-shadow: 0 0 30px rgba(255, 200, 80, 0.45);
+  animation: runeRotate 8s linear infinite;
+}
+
+@keyframes runeRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   CROSSED SWORDS
+   ============================================================ */
+.fx-swords {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+}
+
+.fx-swords::before,
+.fx-swords::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 160px;
+  background: linear-gradient(180deg, #fefefe, #c0c0c0);
+  box-shadow: 0 0 12px rgba(255,255,255,0.7);
+  border-radius: 6px;
+  top: 0;
+}
+
+.fx-swords::before {
+  left: 60px;
+  transform: rotate(45deg);
+  animation: swordShine 2.5s ease-in-out infinite;
+}
+
+.fx-swords::after {
+  right: 60px;
+  transform: rotate(-45deg);
+  animation: swordShine 2.5s ease-in-out infinite 0.4s;
+}
+
+@keyframes swordShine {
+  0% { filter: brightness(0.9); }
+  50% { filter: brightness(1.4); }
+  100% { filter: brightness(0.9); }
+}
+
+/* ============================================================
+   PHOENIX WINGS — only for VICTORY
+   ============================================================ */
+.fx-wings {
+  position: absolute;
+  width: 520px;
+  height: 250px;
+  pointer-events: none;
+    z-index: 0;
+      top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+}
+
+.fx-wings::before,
+.fx-wings::after {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(255,180,50,0.7), rgba(255,120,20,0));
+  filter: blur(20px);
+  opacity: 0;
+  transform-origin: center;
+  animation: wingsFlare 2s ease-out forwards;
+}
+
+.fx-wings::before {
+  left: -180px;
+  transform: rotate(-22deg);
+}
+
+.fx-wings::after {
+  right: -180px;
+  transform: rotate(22deg);
+}
+
+@keyframes wingsFlare {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+/* ============================================================
+   DEFEAT — RED ENERGY CRACKS
+   ============================================================ */
+.battle-result-fx.defeat .fx-rune-circle {
+  border-color: rgba(255, 70, 70, 0.35);
+  box-shadow: 0 0 30px rgba(255, 50, 50, 0.5);
+}
+
+.battle-result-panel.defeat {
+  box-shadow: 
+    0 0 25px rgba(255,0,0,0.5),
+    inset 0 0 15px rgba(255,0,0,0.4);
+  animation: defeatPulse 1.4s infinite alternate;
+}
+
+@keyframes defeatPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.03); }
+}
+/* ==========================================================================
+   BATTLE RESULT OVERLAY (PURE CINEMATIC CSS)
+   Ornate Medieval Shield + Animated FX Layer
+   ========================================================================== */
+
+/* OVERLAY BACKGROUND */
+.battle-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: radial-gradient(circle at center,
+    rgba(0,0,0,0.82),
+    rgba(0,0,0,0.95));
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   FX LAYER BEHIND PANEL
+   ========================================================================== */
+
+.battle-result-fx {
+  position: absolute;
+  width: 550px;
+  height: 550px;
+  pointer-events: none;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Rotating Rune Circle ------------------------------------------------- */
+.fx-rune-circle {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 220, 140, 0.35);
+  box-shadow: 0 0 32px rgba(255, 200, 80, 0.4);
+  animation: runeSpin 10s linear infinite;
+}
+
+@keyframes runeSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --- Crossed Swords ------------------------------------------------------- */
+.fx-swords {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  opacity: 0.8;
+}
+
+.fx-swords::before,
+.fx-swords::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 170px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffffff, #c8c8c8);
+  box-shadow: 0 0 18px rgba(255,255,255,0.75);
+}
+
+.fx-swords::before {
+  left: 55px;
+  transform: rotate(45deg);
+  animation: swordShimmer 2.6s infinite;
+}
+
+.fx-swords::after {
+  right: 55px;
+  transform: rotate(-45deg);
+  animation: swordShimmer 2.6s infinite 0.4s;
+}
+
+@keyframes swordShimmer {
+  0%   { filter: brightness(0.9); }
+  50%  { filter: brightness(1.6); }
+  100% { filter: brightness(0.9); }
+}
+
+/* --- Phoenix Wings for Victory ------------------------------------------- */
+.fx-wings {
+  position: absolute;
+  width: 580px;
+  height: 260px;
+  pointer-events: none;
+  opacity: 0;
+  animation: wingsReveal 1.8s ease-out forwards;
+}
+
+.fx-wings::before,
+.fx-wings::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 190px;
+  filter: blur(24px);
+  background: radial-gradient(circle,
+    rgba(255,180,40,0.75),
+    rgba(255,120,20,0) 70%);
+}
+
+.fx-wings::before {
+  left: -200px;
+  transform: rotate(-22deg);
+}
+
+.fx-wings::after {
+  right: -200px;
+  transform: rotate(22deg);
+}
+
+@keyframes wingsReveal {
+  0%   { opacity: 0; transform: scale(0.6); }
+  65%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+
+/* --- Defeat Energy Cracks ------------------------------------------------ */
+.battle-result-fx.defeat .fx-rune-circle {
+  border-color: rgba(255, 60, 60, 0.3);
+  box-shadow: 0 0 30px rgba(255, 20, 20, 0.5);
+}
+
+.battle-result-fx.defeat::after {
+  content: "";
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,0,0,0.35),
+    transparent 70%);
+  animation: defeatPulse 1.6s infinite alternate ease-in-out;
+}
+
+@keyframes defeatPulse {
+  from { transform: scale(1); opacity: 0.45; }
+  to   { transform: scale(1.12); opacity: 0.75; }
+}
+
+/* ==========================================================================
+   MAIN PANEL — Medieval Shield Shape
+   ========================================================================== */
+
+.battle-result-panel {
+  position: relative;
+  z-index: 3;
+  width: 540px;
+  padding: 60px 34px 36px;
+  text-align: center;
+  border-radius: 22px;
+  animation: panelDrop 0.6s ease-out;
+  overflow: visible;
+}
+
+@keyframes panelDrop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* --- VICTORY -------------------------------------------------------------- */
+.battle-result-panel.victory {
+  background: linear-gradient(180deg, #fff2bf, #d7a842 45%, #825515 100%);
+  border: 3px solid #ffeebc;
+  box-shadow:
+    0 0 45px rgba(255,210,110,0.4),
+    inset 0 0 24px rgba(255,240,200,0.25),
+    inset 0 0 6px rgba(0,0,0,0.9);
+}
+
+/* --- DEFEAT --------------------------------------------------------------- */
+.battle-result-panel.defeat {
+  background: linear-gradient(180deg, #ba1b1b, #6d0808 45%, #290202 100%);
+  border: 3px solid #ff7070;
+  box-shadow:
+    0 0 35px rgba(255,40,40,0.45),
+    inset 0 0 22px rgba(0,0,0,0.75);
+  animation: panelBreath 1.4s infinite alternate;
+}
+
+@keyframes panelBreath {
+  from { transform: scale(1); }
+  to   { transform: scale(1.03); }
+}
+
+/* ==========================================================================
+   TITLE
+   ========================================================================== */
+
+.battle-result-header {
+  font-family: "Cinzel", serif;
+  font-size: 62px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.battle-result-panel.victory .battle-result-header {
+  color: #fff6d6;
+  text-shadow:
+    0 0 30px rgba(255,220,130,0.8),
+    0 0 45px rgba(255,180,50,0.5);
+}
+
+.battle-result-panel.defeat .battle-result-header {
+  color: #ffd0d0;
+  text-shadow:
+    0 0 30px rgba(255,60,60,1),
+    0 0 40px rgba(255,0,0,0.6);
+}
+
+/* ==========================================================================
+   DESCRIPTION
+   ========================================================================== */
+
+.battle-result-text {
+  font-size: 17px;
+  line-height: 1.55;
+  color: #fff4d8;
+  margin-bottom: 28px;
+  text-shadow: 0 0 8px rgba(0,0,0,0.6);
+}
+
+/* ==========================================================================
+   REWARD BOX (Victory only)
+   ========================================================================== */
+
+.battle-result-rewards {
+  margin-top: 6px;
+  padding: 14px 18px 22px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #3b2a11, #1b1105);
+  border: 1px solid rgba(255,220,150,0.45);
+  position: relative;
+}
+
+.battle-result-reward-label {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffd991;
+  margin-bottom: 8px;
+}
+
+.battle-result-gold-amount {
+  font-size: 34px;
+  font-weight: 700;
+  color: #fff3c0;
+  font-family: "Cinzel", serif;
+  text-shadow:
+    0 0 18px rgba(255,230,150,1),
+    0 0 26px rgba(255,200,100,0.6);
+}
+
+.battle-result-gold-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #ffe9bd;
+}
+
+/* ==========================================================================
+   COIN BURST
+   ========================================================================== */
+
+.battle-result-coins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.battle-result-coin {
+  position: absolute;
+  bottom: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff7c4, #f4c05a 55%, #a86b0f);
+  box-shadow:
+      0 0 12px rgba(255,200,120,0.6),
+      0 0 24px rgba(255,210,140,0.35);
+  animation: coinRise 1.6s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes coinRise {
+  0%   { transform: translateY(0px) scale(0.6); opacity: 0; }
+  25%  { opacity: 1; }
+  60%  { transform: translateY(-90px) scale(1); opacity: 0.9; }
+  100% { transform: translateY(-150px) scale(0.85); opacity: 0; }
+}
+
+/* Natural stagger */
+.battle-result-coin:nth-child(1) { left: 20%; animation-delay: 0s; }
+.battle-result-coin:nth-child(2) { left: 36%; animation-delay: 0.15s; }
+.battle-result-coin:nth-child(3) { left: 50%; animation-delay: 0.28s; }
+.battle-result-coin:nth-child(4) { left: 65%; animation-delay: 0.42s; }
+.battle-result-coin:nth-child(5) { left: 80%; animation-delay: 0.56s; }
+
+/* ==========================================================================
+   CONTINUE BUTTON
+   ========================================================================== */
+
+.battle-result-actions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.battle-result-btn {
+  padding: 14px 36px;
+  border-radius: 999px;
+  border: 2px solid #ffe2a8;
+  background: linear-gradient(180deg, #f4d48a, #b97d2c);
+  color: #3a2407;
+  font-family: "Cinzel", serif;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0,0,0,0.6);
+  transition: 0.15s ease-out;
+}
+
+.battle-result-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 22px rgba(255,240,180,0.55);
+}
