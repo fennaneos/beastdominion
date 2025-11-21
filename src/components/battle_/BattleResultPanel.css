@@ -1,131 +1,296 @@
 .brp-overlay {
-  position: absolute;
+  position: fixed; /* cover viewport */
   inset: 0;
-  backdrop-filter: blur(3px);
-  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 5000;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.75) 60%);
+  backdrop-filter: blur(4px) saturate(1.05);
+  z-index: 7500;
+  animation: brp-overlay-fade 260ms ease-out;
 }
+@keyframes brp-overlay-fade { from { opacity: 0 } to { opacity: 1 } }
 
-/* Panel base */
 .brp-panel {
   position: relative;
-  width: 460px;
-  padding: 40px 25px 30px;
-  border-radius: 18px;
+  width: 640px;
+  max-width: 92%;
+  padding: 34px 28px 28px;
+  border-radius: 16px;
   text-align: center;
-  color: #fff4d6;
-  font-family: "Cinzel", serif;
-
-  background: radial-gradient(circle at top,
-      rgba(35, 25, 10, 0.95),
-      rgba(15, 10, 4, 0.98));
-  border: 3px solid #d4af37;
-  box-shadow: 0 0 28px rgba(0,0,0,0.9),
-              inset 0 0 12px rgba(0,0,0,0.6);
+  color: #2b1707;
+  font-family: "Cinzel", Georgia, serif;
+  background:
+    linear-gradient(180deg, rgba(255,248,230,0.95), rgba(235,215,170,0.92)),
+    url("/src/assets/backgrounds/parchment.jpg") center/cover no-repeat;
+  border: 6px solid rgba(78,50,22,0.96);
+  box-shadow:
+    0 28px 80px rgba(0,0,0,0.65),
+    inset 0 2px 18px rgba(255,255,255,0.12);
+  transform-origin: center;
+  animation: brp-panel-pop 420ms cubic-bezier(.2,.9,.25,1);
+  overflow: visible;
+}
+@keyframes brp-panel-pop {
+  0% { transform: translateY(12px) scale(0.92); opacity: 0 }
+  60% { transform: translateY(-6px) scale(1.04); opacity: 1 }
+  100% { transform: translateY(0) scale(1); opacity: 1 }
 }
 
-/* Wing decorations */
+/* Crown ornament */
 .brp-wings {
   position: absolute;
-  top: -42px;
+  top: -48px;
   left: 50%;
-  width: 440px;
-  height: 120px;
-  transform: translateX(-50%);
-  background: url("/assets/ornate_wings.png") center/contain no-repeat;
-  opacity: 0.95;
+  transform: translateX(-50%) scale(1);
+  width: 520px;
+  height: 116px;
+  background: url("/src/assets/ornate_wings.png") center/contain no-repeat;
   pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.7)) saturate(1.1);
+  animation: brp-wings-sway 3.8s ease-in-out infinite;
+  opacity: 0.98;
+}
+@keyframes brp-wings-sway {
+  0%,100% { transform: translateX(-50%) rotate(-1deg) }
+  50% { transform: translateX(-50%) rotate(1deg) }
 }
 
-/* Victory vs Defeat */
+/* Victory / Defeat color treatments */
 .brp-panel.victory {
-  border-color: #ffdd66;
-  box-shadow: 0 0 35px #e8c14b;
+  border-color: #ffd96a;
+  box-shadow: 0 30px 90px rgba(255,200,80,0.12), 0 8px 30px rgba(0,0,0,0.6);
 }
-
 .brp-panel.defeat {
-  border-color: #b33;
-  box-shadow: 0 0 35px #b00000;
-  background: radial-gradient(circle at top,
-      rgba(60, 15, 15, 0.95),
-      rgba(25, 5, 5, 0.98));
+  border-color: #8f2222;
+  background:
+    linear-gradient(180deg, rgba(60,15,15,0.98), rgba(25,6,6,0.98)),
+    url("/src/assets/backgrounds/parchment_dark.jpg") center/cover no-repeat;
+  color: #f8e6d8;
+  box-shadow: 0 30px 90px rgba(180,40,40,0.12), 0 8px 30px rgba(0,0,0,0.75);
 }
 
+/* Title */
 .brp-title {
-  font-size: 42px;
-  font-weight: bold;
-  text-shadow: 0 0 18px rgba(255, 255, 180, 0.8);
-  margin-bottom: 20px;
+  font-size: 44px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,250,230,0.9), rgba(230,190,100,0.9));
+  box-shadow: 0 8px 26px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.25);
+  text-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  animation: brp-title-glow 1.6s ease-in-out infinite alternate;
+}
+@keyframes brp-title-glow {
+  from { filter: drop-shadow(0 6px 18px rgba(255,200,80,0.06)) }
+  to   { filter: drop-shadow(0 18px 32px rgba(255,200,80,0.18)) }
 }
 
-/* Reward Box */
+/* Reward box */
 .brp-reward-box {
-  margin: 14px 0 10px;
-  padding: 10px 15px;
-  background: rgba(255,255,255,0.08);
+  margin: 14px auto 6px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06);
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: inline-block;
 }
 
+/* Reward value row */
 .brp-reward-value {
   display: flex;
-  justify-content: center;
+  gap: 10px;
   align-items: center;
-  gap: 6px;
-  font-size: 26px;
-  color: #ffe7a1;
+  justify-content: center;
+  font-size: 28px;
+  color: #7a4f16;
+  font-weight: 800;
+  text-shadow: 0 4px 12px rgba(255,240,190,0.12);
 }
 
-.brp-coin-icon {
-  width: 28px;
-  height: 28px;
-}
+/* coin icon */
+.brp-coin-icon { width: 34px; height: 34px; display:inline-block; }
 
-/* Flying coins */
+/* animated flying coins (victory) */
 .brp-flying-coin {
   position: absolute;
-  bottom: 40px;
+  bottom: 28px;
+  right: 20%;
+  width: 28px;
+  height: 28px;
+  opacity: 0.95;
+  pointer-events: none;
   animation: brp-coin-fly 1.6s ease-out forwards;
-  opacity: 0.85;
 }
-
-.brp-flying-coin img {
-  width: 24px;
-  height: 24px;
-}
-
+.brp-flying-coin:nth-child(2) { right: 30%; animation-delay: 0.08s; }
+.brp-flying-coin:nth-child(3) { right: 40%; animation-delay: 0.16s; }
 @keyframes brp-coin-fly {
+  0%   { transform: translateY(0) scale(1); opacity: 0.95; }
+  40%  { opacity: 1; }
+  100% { transform: translateY(-220px) translateX(-40px) scale(0.22); opacity: 0; }
+}
+
+/* confetti burst (subtle) */
+.brp-confetti {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 320px;
+  height: 160px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  overflow: visible;
+  z-index: 7600;
+}
+.brp-confetti .piece {
+  position: absolute;
+  width: 10px; height: 16px;
+  background: gold;
+  opacity: 0;
+  transform-origin: center;
+  animation: brp-confetti-pop 1.2s ease-out forwards;
+}
+@keyframes brp-confetti-pop {
+  0% { opacity: 0; transform: translateY(0) rotate(0) scale(0.6); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(220px) rotate(720deg) scale(0.6); }
+}
+
+/* 1) CINEMATIC MEDIEVAL DAMAGE NUMBERS
+   - golden gradient text, heavy glow, pop+float animation
+   - used for both enhanced cinematic hits and small floating hits
+*/
+.damage-number-enhanced,
+.damage-fly {
+  position: absolute;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  z-index: 99999;
+  font-family: "Cinzel", "Trajan Pro", serif;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: none;
+  will-change: transform, opacity, filter;
+}
+
+/* big cinematic (center-screen) */
+.damage-number-enhanced {
+  font-size: 52px;
+  background: linear-gradient(90deg,#ffef9a,#ffd76a 50%,#ffb84a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 10px 30px rgba(160,90,10,0.35),
+    0 2px 8px rgba(0,0,0,0.6),
+    0 0 24px rgba(255,200,80,0.45);
+  filter: drop-shadow(0 6px 18px rgba(160,90,8,0.45));
+  animation: brp-damage-pop 1200ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+/* quick floating (near card) */
+.damage-fly {
+  font-size: 20px;
+  color: #fff8e6;
+  text-shadow: 0 6px 12px rgba(80,40,10,0.6), 0 0 10px rgba(255,200,90,0.35);
+  animation: brp-damage-pop-small 900ms ease-out forwards;
+}
+
+/* Big pop + float */
+@keyframes brp-damage-pop {
   0% {
-    transform: translateY(0) scale(1);
-    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.2) rotate(-6deg);
+    opacity: 1;
+    filter: blur(0px) brightness(1.2);
   }
-  70% {
+  30% {
+    transform: translate(-50%, -120%) scale(1.5) rotate(4deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -160%) scale(1.15) rotate(-2deg);
+    opacity: 0.92;
+  }
+  100% {
+    transform: translate(-50%, -210%) scale(0.9) rotate(0deg);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+/* Small float */
+@keyframes brp-damage-pop-small {
+  0% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -90%) scale(1.12);
     opacity: 1;
   }
   100% {
-    transform: translateY(-180px) scale(0.2);
+    transform: translate(-50%, -140%) scale(0.95);
     opacity: 0;
   }
 }
 
-/* Button */
-.brp-btn {
-  margin-top: 20px;
-  padding: 10px 22px;
-  font-size: 18px;
-  background: linear-gradient(180deg, #ffe17a, #c98a2d);
-  border: 2px solid #e6c470;
-  border-radius: 12px;
-  color: #38240e;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
+/* 2) STABILIZE FIELD POSITIONS DURING CINEMATIC ZOOM / ATTACK
+   - force the stacks to keep their layout anchor while scene zooms
+   - hint to compositor (will-change) and disable backface flicker
+*/
+.player-stack,
+.enemy-stack {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.brp-btn:hover {
-  transform: scale(1.07);
-  box-shadow: 0 0 14px #ffde8b;
+/* When the scene applies zoom/attack classes, lock Y positions to avoid drifting */
+.battlefield-scene--zoom-in .player-stack,
+.battlefield-scene--zoom-in .enemy-stack,
+.battlefield-scene--zoom-out .player-stack,
+.battlefield-scene--zoom-out .enemy-stack {
+  /* preserve their designed anchors (these mirror the values used in layout) */
+  transform: translateX(-50%) !important;
+}
+
+/* ensure absolute stacks keep their specified top/bottom (prevent small translateY side-effects) */
+.battlefield-scene--zoom-in .player-stack { bottom: 300px !important; left: 50% !important; transform: translateX(-50%) !important; }
+.battlefield-scene--zoom-in .enemy-stack  { top: 50px !important; left: 50% !important; transform: translateX(-50%) !important; }
+
+/* also guard against field-slot transforms affecting surrounding flow */
+.field-slot, .battlefield-card {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* 3) small visual smoothing to avoid perceived vertical jumps when many transforms occur */
+.field-row--player, .field-row--enemy, .hand-row--player, .hand-row--enemy {
+  position: relative; /* keep layout stable */
+  z-index: 2;
+}
+
+/* 4) optional: slightly reduce the vertical translate in the cinematic animations so cards don't cross the battlefield midline
+   (this nudges attacker/target keyframes but keeps overall feel) */
+.attacker-3d { animation-duration: 1.4s !important; }
+@keyframes attacker-cinematic {
+  0%   { transform: translateZ(0) rotateY(0deg) scale(1); }
+  30%  { transform: translateZ(90px) rotateY(-8deg) translateX(28px) scale(1.25); }
+  50%  { transform: translateZ(160px) rotateY(-12deg) translateX(60px) scale(1.45); }
+  80%  { transform: translateZ(90px) rotateY(-8deg) translateX(28px) scale(1.25); }
+  100% { transform: translateZ(0) rotateY(0deg) scale(1); }
+}
+
+.target-hit-3d { animation-duration: 1.1s !important; }
+@keyframes target-cinematic-hit {
+  0% { transform: translateZ(0) rotateX(0deg) scale(1); }
+  30% { transform: translateZ(40px) rotateX(6deg) translateX(-12px) scale(1.08); }
+  50% { transform: translateZ(80px) rotateX(-8deg) translateX(16px) scale(1.12); }
+  80% { transform: translateZ(30px) rotateX(3deg) translateX(-6px) scale(1.05); }
+  100% { transform: translateZ(0) rotateX(0deg) scale(1); }
 }

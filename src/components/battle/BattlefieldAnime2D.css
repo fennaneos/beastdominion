@@ -1624,26 +1624,147 @@
   }
 }
 
-
-
-
-
-
-/* Always reserve fixed height for hand rows */
-.hand-row--player,
-.hand-row--enemy {
-  min-height: 120px;     /* KEEP SPACE EVEN IF EMPTY */
+/* -----------------------------
+   MEDIEVAL VICTORY / DEFEAT PANEL
+   Replaces simple overlay with parchment, ornament and crowned title
+   ----------------------------- */
+.battle-result-overlay {
+  position: fixed;
+  inset: 0;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
+  background: rgba(8,6,3,0.65);
+  z-index: 1400;
+  -webkit-font-smoothing: antialiased;
+  pointer-events: auto;
 }
 
-/* Ensure the scroller also keeps its space */
-.hand-scroller {
-  min-height: 112px;      /* same as card height */
-  display: flex;
-  align-items: center;
+.battle-result-panel {
+  width: 620px;
+  max-width: 94%;
+  padding: 28px 30px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg,#f7ecd4 0%, #e8d4a8 50%, #d6b98a 100%);
+  border: 6px solid rgba(84,56,28,0.95);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.75), inset 0 2px 0 rgba(255,255,255,0.12);
+  color: #2b1707;
+  font-family: "Cinzel", "Georgia", serif;
+  text-align: center;
+  position: relative;
+  overflow: visible;
 }
+
+/* ornament (crown/crest) */
+.battle-result-panel::before {
+  content: "✠";
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 44px;
+  color: #f4d38a;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+/* Title block */
+.result-title {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #3a2608;
+  background: linear-gradient(180deg, rgba(255,250,225,0.95), rgba(220,180,90,0.9));
+  border: 1px solid rgba(120,80,30,0.18);
+  box-shadow: 0 8px 24px rgba(60,30,0,0.22);
+  margin-bottom: 8px;
+}
+
+.result-victory { color: #4a2b00; }
+.result-defeat { color: #5a0a0a; }
+
+/* Body / reward */
+.result-body { margin-top: 12px; font-size: 18px; color: #3c2a19; }
+.reward-3d { display:flex; gap:10px; justify-content:center; margin:12px 0; }
+.coin { width:36px; height:36px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #fff3be,#ffb84a); box-shadow: inset 0 -6px 10px rgba(0,0,0,0.15), 0 10px 26px rgba(0,0,0,0.45); }
+.gold-count { font-size:20px; font-weight:800; color:#4b2b00; margin-top:8px; }
+
+/* Result action buttons */
+.result-actions { display:flex; gap:14px; justify-content:center; margin-top:14px; }
+.result-btn { padding:10px 18px; border-radius:8px; font-family: "Cinzel", serif; cursor:pointer; border:3px solid rgba(80,48,20,0.9); }
+.result-btn-primary { background:#8b2b2b; color:#f6d99a; }
+.result-btn-secondary { background:#c8a56a; color:#2b1a0e; }
+
+/* -----------------------------
+   DAMAGE NUMBER (unified, fixed)
+   Used by both cinematic (.damage-number-enhanced) and quick floating hits (.damage-fly)
+   ----------------------------- */
+.damage-number-enhanced,
+.damage-fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2000;
+  font-family: "Cinzel", "Segoe UI", sans-serif;
+  font-weight: 900;
+  color: #ffd6d6;
+  -webkit-text-stroke: 1px rgba(120,30,30,0.6);
+  text-shadow:
+    0 6px 18px rgba(120,30,30,0.6),
+    0 2px 8px rgba(0,0,0,0.6);
+  animation: damage-number-float 1200ms cubic-bezier(.2,.9,.2,1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Slight size variant for cinematic (bigger) */
+.damage-number-enhanced {
+  font-size: 44px;
+  color: #ffdad6;
+  background: linear-gradient(90deg,#ff6b6b,#ffb07a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* smaller for quick fly numbers */
+.damage-fly {
+  font-size: 20px;
+  color: #fff1f1;
+  text-shadow: 0 6px 12px rgba(0,0,0,0.6);
+}
+
+/* keyframes for a clear pop + float + fade */
+@keyframes damage-number-float {
+  0% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  35% {
+    transform: translate(-50%, -120%) scale(1.35);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  65% {
+    transform: translate(-50%, -160%) scale(1.05);
+    opacity: 0.9;
+    filter: blur(0px);
+  }
+  100% {
+    transform: translate(-50%, -210%) scale(0.9);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+/* Fix: remove broken/duplicate rule at end that used an invalid transform. */
+/* ...existing code... */
+
 /* Prevent background layers from blocking clicks */
 .battlefield-bg,
 .env-particles,
@@ -1980,4 +2101,281 @@
 /* Top-right Exit button */
 .exit-btn {
   font-size: 22px;
+}
+
+
+
+/* In BattlefieldAnime2D.css, add these styles if not already present: */
+
+/* Buff indicators on cards */
+.card-buff {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: gold;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.buff-attack {
+  background: #ff6b35;
+}
+
+.buff-health {
+  background: #4caf50;
+}
+
+/* Status indicators on cards */
+.card-poison {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    #8B00,
+    #8B00 5px,
+    #A52A2A 5px,
+    #A52A2A 10px
+  );
+  opacity: 0.7;
+}
+
+.card-stealth {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(75, 0, 130, 0.2);
+  border: 1px solid rgba(75, 0, 130, 0.7);
+  border-radius: 5px;
+}
+
+.card-disabled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(100, 100, 100, 0.3);
+  border: 1px solid rgba(255, 0, 0, 0.7);
+  border-radius: 5px;
+}
+
+/* Field slot status classes */
+.field-slot--buff-attack {
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.field-slot--buff-health {
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.field-slot--poison {
+  box-shadow: inset 0 0 10px rgba(139, 69, 19, 0.3);
+}
+
+.field-slot--stealth {
+  box-shadow: inset 0 0 10px rgba(75, 0, 130, 0.3);
+}
+
+.field-slot--disabled {
+  box-shadow: inset 0 0 10px rgba(100, 100, 100, 0.5);
+}
+
+/* In BattlefieldAnime2D.css, add these styles if not already present: */
+
+/* Cinematic message positioning */
+.cinematic-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+  text-align: center;
+  border: 2px solid gold;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  pointer-events: none;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* Cinematic particles positioning */
+.cinematic-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: particleFloat 2s ease-out forwards;
+}
+
+@keyframes particleFloat {
+   0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-100px) scale(0); opacity: 0; }
+}
+
+/* Screen flash effect */
+.screen-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 1001;
+  animation: screenFlash 0.3s ease-out forwards;
+}
+
+@keyframes screenFlash {
+  0% { opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+/* Energy charge effect */
+.energy-charge {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(255, 165, 0, 0.8), rgba(255, 215, 0, 0.4));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 998;
+  animation: energyPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes energyPulse {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* Lightning bolt effect */
+.lightning-bolt {
+  position: absolute;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+  border-radius: 2px;
+  transform-origin: top center;
+  z-index: 997;
+}
+
+/* Epic impact effect */
+.epic-impact {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  z-index: 996;
+}
+
+.impact-shockwave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.6), rgba(255, 215, 0, 0));
+  animation: impactShockwave 1s ease-out forwards;
+}
+
+@keyframes impactShockwave {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+.impact-core {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 30px;
+  left: 30px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border-radius: 50%;
+  animation: impactCore 0.5s ease-out forwards;
+}
+
+@keyframes impactCore {
+  0% { transform: scale(0.5); opacity: 0.7; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0.5; }
+}
+
+.impact-sparks {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: impactSparks 0.8s ease-out forwards;
+}
+
+@keyframes impactSparks {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Damage number effect */
+.damage-number-enhanced {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff3333;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  z-index: 997;
+  animation: damageNumberFloat 1.5s ease-out forwards;
+}
+
+@keyframes damageNumberFloat {
+  0% { transform: translate(-50%, -50%) translateY(0); opacity: 1; }
+  50% { transform: translate(-50%, -50%) translateY(-20px); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translateY(-100px); opacity: 0; }
+}
+
+
+.cinematic-layer {
+  position: fixed;
+  pointer-events: none;
+  inset: 0;
+  z-index: 2000;
+}
+
+
+
+
+.hand-row--player,
+.hand-row--enemy {
+  height: 130px;   /* or whatever matches your card height + hover space */
+  position: relative;
 }
